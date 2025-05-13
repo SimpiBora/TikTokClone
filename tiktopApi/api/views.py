@@ -55,28 +55,12 @@ from pagination.custompagination import (
 )
 
 
-# class CSRFTokenView(APIView):
-#     """
-#     Provides a CSRF token to the client as a cookie.
-#     """
-
-#     authentication_classes = []  # Disable authentication for this route
-#     permission_classes = []  # Disable permissions for this route
-
-#     def get(self, request, *args, **kwargs):
-#         csrf_token = get_token(request)  # Generate or retrieve CSRF token
-#         response = JsonResponse({"detail": "CSRF cookie set"})
-#         # Optional: Include token in response header
-#         response["X-CSRFToken"] = csrf_token
-#         return response
-
-
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 
 
 # rewrite this code to use the CSRF token in the header using viewsets
-class CSRFTokenViewSet(viewsets.ViewSet):
+class CSRFTokenViewSet(ViewSet):
     """
     Provides a CSRF token to the client as a cookie.
     """
