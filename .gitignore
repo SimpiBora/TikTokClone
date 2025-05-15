@@ -201,7 +201,6 @@ cython_debug/
 
 # images and media files would not be uploaded to server
 *media
-*TikTok
 node_modules
 *.log*
 .nuxt
