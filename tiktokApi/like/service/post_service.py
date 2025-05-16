@@ -1,4 +1,4 @@
-from api.models import Post
+from accounts.models import Post
 from django.db.models import Count
 
 

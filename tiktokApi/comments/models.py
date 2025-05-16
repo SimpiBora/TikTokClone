@@ -1,5 +1,5 @@
 from django.db import models
-from api.models import User, Post, AutoUpdate
+from accounts.models import User, Post, AutoUpdate
 
 
 # class Comment(AutoUpdate):

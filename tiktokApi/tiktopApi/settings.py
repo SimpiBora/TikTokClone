@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # internal apps
-    "api",
+    'core',
+    # "api",
+    'accounts',
     "like",
     "comments",
     "search",
@@ -155,7 +157,8 @@ APPEND_SLASH = False
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-AUTH_USER_MODEL = "api.User"  # 'api' should be the name of your app
+# AUTH_USER_MODEL = "api.User"  # 'api' should be the name of your app
+AUTH_USER_MODEL = 'accounts.User' # "accounts.User"  # 'accounts' should be the name of your app
 
 
 CORS_ALLOWED_ORIGINS = [

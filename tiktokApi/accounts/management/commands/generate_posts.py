@@ -2,7 +2,7 @@ import random
 from faker import Faker
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
-from api.models import User, Post
+from accounts.models import User, Post
 
 
 class Command(BaseCommand):

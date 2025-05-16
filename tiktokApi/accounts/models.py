@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractUser
+from core.models import AutoUpdate
 
 
 class CustomUserManager(BaseUserManager):
@@ -29,12 +30,12 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class AutoUpdate(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+# class AutoUpdate(models.Model):
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        abstract = True
+#     class Meta:
+#         abstract = True
 
 
 class User(AbstractUser):
@@ -43,7 +44,7 @@ class User(AbstractUser):
     """
 
     bio = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to="user_images/", blank=True, null=True)
+    image = models.ImageField(upload_to="user_images/", blank=True, null=True, default='abj.jpg')
     email = models.EmailField(unique=True)  # Email as the unique identifier
     username = models.CharField(
         max_length=150, unique=False, blank=True, null=True

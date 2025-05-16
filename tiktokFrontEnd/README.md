@@ -2,7 +2,9 @@
 
 ### Learn how to build this!
 
-If you'd like a step-by-step guide on how to build this just **CLICK THE IMAGE BELOW**
+Only copying for Education Propose ( Thanks John Weeks Dev )
+
+<!-- If you'd like a step-by-step guide on how to build this just **CLICK THE IMAGE BELOW**
 
 [![GO TO JOHN WEEKS DEV TUTORIAL VIDEOS](https://user-images.githubusercontent.com/108229029/226175392-1ffef6e7-4f34-41ee-889a-0b438aca69d6.png)](https://www.youtube.com/watch?v=CHSL0Btbj_o)
 
@@ -58,4 +60,4 @@ You should be good to go!
 <div>
   <img width="660" src="https://user-images.githubusercontent.com/108229029/225041953-662d4517-4df9-4387-994c-d06205f811ef.png">
   <img width="340" src="https://user-images.githubusercontent.com/108229029/225044283-67af4cc8-2897-403f-9cc3-1e844d52771c.png">
-</div>
+</div> -->

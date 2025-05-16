@@ -1,5 +1,5 @@
 from django.db.models import Count
-from api.models import Post
+from accounts.models import Post
 import django
 import os
 

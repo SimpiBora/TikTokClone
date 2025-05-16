@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from django.db import models
-from api.models import Post, AutoUpdate, User
+from accounts.models import Post, AutoUpdate, User
 
 
 class LikeManager(models.Manager):

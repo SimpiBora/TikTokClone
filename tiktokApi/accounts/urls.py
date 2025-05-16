@@ -178,6 +178,7 @@ for name, cls in getmembers(views, isclass):
 # router.register(r"productlist", views.ProductListViewSet, basename="productlist")
 
 urlpatterns = [
-    path("mod5/", include(router.urls)),  # Register the routes under '/api/mod5/'
+    # Register the routes under '/api/mod5/'
+    path("", include(router.urls)),
     # Manually add the custom path for DynamicCategoryURLFilterViewSet
 ]

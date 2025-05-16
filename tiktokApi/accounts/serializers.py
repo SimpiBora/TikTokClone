@@ -17,7 +17,7 @@ from .models import User
 
 
 '''
-{   
+{
     "name": "mike",
     "email": "mike@example.com",
     "password": "geekyshows",
@@ -97,7 +97,6 @@ class UserSerializer(serializers.ModelSerializer):
         return None
 
 
-
 class UpdateUserImageSerializer(serializers.Serializer):
     height = serializers.FloatField()
     width = serializers.FloatField()
@@ -130,16 +129,17 @@ class PostSerializer(serializers.ModelSerializer):
             'id': obj.user.id,
             'name': obj.user.name,
             'email': obj.user.email,
-            'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
+            'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}'"
+            # 'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
         }
-
 
     # def get_video(self, obj):
     #     # return format_html(f'{obj.video.url}' if obj.video else None)
     #     return (f'{obj.video.url}' if obj.video else None)
-    
+
     def get_video(self, obj):
         if obj.video:
+            print('obj is comming ---->>>', obj)
             request = self.context.get('request')
             return request.build_absolute_uri(obj.video.url) if request else f"{settings.MEDIA_URL}{obj.video.url}"
         return None

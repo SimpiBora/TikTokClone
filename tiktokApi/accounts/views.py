@@ -76,12 +76,18 @@ class CSRFTokenViewSet(ViewSet):
         return response
 
 
-class RegisterUserView(APIView):
-    permission_classes = [AllowAny]
+class RegisterUserViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
 
-    def post(self, request):
+    def create(self, request):
+        '''
+        Registering a user
+
+        '''
         serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
+
+        if serializer.is_valid(raise_exception=True):
             try:
                 # Create the user
                 user = serializer.save()
@@ -96,6 +102,30 @@ class RegisterUserView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+# class RegisterUserView(APIView):
+#     permission_classes = [AllowAny]
+
+#     def post(self, request):
+#         serializer = UserRegistrationSerializer(data=request.data)
+#         if serializer.is_valid():
+#             try:
+#                 # Create the user
+#                 user = serializer.save()
+
+#                 # Optionally create a token
+#                 token = Token.objects.create(user=user)
+
+#                 return Response({"token": token.key}, status=status.HTTP_201_CREATED)
+#             except InterruptedError as e:
+#                 return Response(
+#                     {"error": "A user with this email or username already exists."},
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+'''
 
 
 class LoginView(APIView):
@@ -335,23 +365,47 @@ class PostDeleteView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+# working with it
 
-class HomeView(APIView):
-    permission_classes = [AllowAny]
-    pagination_class = CustomCursorPagination
-    # pagination_class = CustomPageNumberPagination
 
-    """
-    API to display all posts ordered by creation date.
-    """
+class HomeViewSet(ViewSet):
+    # permission_classes = [AllowAny]
+    # pagination_class = CustomCursorPagination
 
-    def get(self, request):
-        try:
-            posts = Post.objects.all().order_by("-created_at")
-            serializer = PostSerializer(posts, many=True, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    def list(self, request):
+        queryset = Post.objects.all().order_by('-created_at')
+        serializer = PostSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # def list(self, request):
+    #     try:
+    #         queryset = Post.objects.all()
+    #         serializer = PostSerializer(
+    #             queryset, many=True, context={"request": request})
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     except Exception as e:
+    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+# class HomeView(APIView):
+#     permission_classes = [AllowAny]
+#     pagination_class = CustomCursorPagination
+#     # pagination_class = CustomPageNumberPagination
+
+#     """
+#     API to display all posts ordered by creation date.
+#     """
+
+#     def get(self, request):
+#         try:
+#             posts = Post.objects.all().order_by("-created_at")
+#             serializer = PostSerializer(
+#                 posts, many=True, context={"request": request})
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+'''
 
 
 class ProfileView(APIView):
@@ -431,7 +485,8 @@ class SendVerificationEmail(APIView):
 
         # Generate verification link
         verification_link = f"http://{get_current_site(request).domain}{
-            reverse('email_verification', kwargs={'uidb64': uid, 'token': token})
+            reverse('email_verification', kwargs={
+                    'uidb64': uid, 'token': token})
         }"
 
         # Send verification email
@@ -491,7 +546,8 @@ class RequestPasswordReset(APIView):
 
         # Generate the reset password link
         reset_password_link = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={
+                    'uidb64': uid, 'token': token})
         }"
 
         # Send the reset email
@@ -568,7 +624,8 @@ class PasswordResetLinkController(APIView):
 
         # Generate the password reset URL
         reset_url = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={
+                    'uidb64': uid, 'token': token})
         }"
 
         # Send email with the password reset link
@@ -636,7 +693,8 @@ def send_verification_email(user):
             "verification_url": verification_url,
         },
     )
-    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    send_mail(email_subject, email_message,
+              settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 class UserViewSet(viewsets.ModelViewSet):
