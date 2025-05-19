@@ -44,10 +44,11 @@ class User(AbstractUser):
     """
 
     bio = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to="user_images/", blank=True, null=True, default='abj.jpg')
+    image = models.ImageField(upload_to="user_images/",
+                              blank=True, null=True)
     email = models.EmailField(unique=True)  # Email as the unique identifier
     username = models.CharField(
-        max_length=150, unique=False, blank=True, null=True
+        max_length=150, unique=False, blank=True, null=True, help_text='This Field is not Required'
     )  # Make username optional
     name = models.CharField(max_length=255, blank=True, null=True)
 
@@ -69,7 +70,8 @@ class Post(AutoUpdate):
         related_name="posts",  # Reverse relationship (user.posts.all())
     )
     text = models.TextField()
-    video = models.FileField(upload_to="videos/", null=True, blank=True)
+    video = models.FileField(
+        upload_to="videos/", null=True, blank=True)
     # created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
