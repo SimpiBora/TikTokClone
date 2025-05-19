@@ -25,9 +25,14 @@ export const useGeneralStore = defineStore('general', {
     },
 
     // <!-- need to word here -->
+    // allLowerCaseNoCaps(str) {
+    //   return str.split(' ').join('').toLowerCase()
+    // },
     allLowerCaseNoCaps(str) {
-      return str.split(' ').join('').toLowerCase()
+      if (!str || typeof str !== 'string') return ''
+      return str.split(' ').join('-').toLowerCase()
     },
+
 
     setBackUrl(url) {
       this.isBackUrl = url

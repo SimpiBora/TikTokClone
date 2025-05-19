@@ -7,8 +7,10 @@
             <div class="flex items-center justify-between pb-0.5">
                 <button @click="isLoggedIn(post.user)">
                     <span class="font-bold hover:underline cursor-pointer">
-                        <!-- {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} -->
-                        {{ 'all data' }} <!-- need to word here -->
+                        <!-- {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} original one -->
+                        <!-- <p v-if="post.user?.name">{{ allLowerCaseNoCaps(user.name) }}</p> -->
+                        {{ $generalStore.allLowerCaseNoCaps(post.user?.name) }}
+                        <!-- <p>{{ user?.name ? allLowerCaseNoCaps(user.name) : '' }}</p> -->
                     </span>
                     <span class="text-[13px] text-light text-gray-500 pl-1 cursor-pointer">
                         {{ post.user.name }}
