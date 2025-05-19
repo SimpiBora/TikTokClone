@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', {
   actions: {
 
     async getTokens() {
-      await $axios.get('/sanctum/csrf-cookie')
+      await $axios.get('/api/csrftoken/')
     },
 
     async login(email, password) {
@@ -35,7 +35,7 @@ export const useUserStore = defineStore('user', {
 
     async getUser() {
       let res = await $axios.get('/api/logged-in-user')
-      
+
       this.$state.id = res.data[0].id
       this.$state.name = res.data[0].name
       this.$state.bio = res.data[0].bio
@@ -86,11 +86,11 @@ export const useUserStore = defineStore('user', {
       let res = await $axios.get(`/api/profiles/${post.user.id}`)
 
       for (let i = 0; i < res.data.posts.length; i++) {
-          const updatePost = res.data.posts[i];
+        const updatePost = res.data.posts[i];
 
-          if (post.id == updatePost.id) {
-              useGeneralStore().selectedPost.comments = updatePost.comments
-          }
+        if (post.id == updatePost.id) {
+          useGeneralStore().selectedPost.comments = updatePost.comments
+        }
       }
     },
 
@@ -125,7 +125,7 @@ export const useUserStore = defineStore('user', {
       singlePost.likes.forEach(like => {
         if (like.user_id === this.id) { deleteLike = like }
       });
-      
+
       let res = await $axios.delete('/api/likes/' + deleteLike.id)
 
       for (let i = 0; i < singlePost.likes.length; i++) {
@@ -139,7 +139,7 @@ export const useUserStore = defineStore('user', {
       this.resetUser()
     },
 
-    resetUser() {      
+    resetUser() {
       this.$state.id = ''
       this.$state.name = ''
       this.$state.email = ''
