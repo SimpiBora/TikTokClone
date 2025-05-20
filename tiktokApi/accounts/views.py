@@ -236,7 +236,6 @@ class LoggedInUserViewSet(ViewSet):
         # try:
 
 
-
 # class LoggedInUserAPIView(APIView):
 #     """
 #     API to get details of the logged-in user.
@@ -352,6 +351,7 @@ class PostCreateView(APIView):
                 {"error": "The video field is required and must be a valid MP4 file."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         if "text" not in data:
             return Response(
                 {"error": "The text field is required."},

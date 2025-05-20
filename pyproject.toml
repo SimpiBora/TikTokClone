@@ -37,3 +37,13 @@ dependencies = [
     "uritemplate==4.1.1",
     "urllib3==2.2.2",
 ]
+
+[tool.ruff]
+line-length = 88
+select = ["ALL"]
+exclude = [
+    "migrations",
+    "venv",
+    ".venv",
+    "__pycache__"
+]
