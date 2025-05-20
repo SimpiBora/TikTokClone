@@ -66,13 +66,13 @@ from drf_spectacular.utils import (
 
 
 class CSRFTokenViewSet(ViewSet):
-
     authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
     """
     Provides a CSRF token to the client as a cookie.
     """
+
     @extend_schema(
         # request=PostSerializer,  # This links the serializer for the request body
         # responses={
@@ -101,10 +101,10 @@ class RegisterUserViewSet(ViewSet):
         tags=["accounts"],
     )
     def create(self, request):
-        '''
+        """
         Registering a user
 
-        '''
+        """
         serializer = UserRegistrationSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
@@ -124,7 +124,7 @@ class RegisterUserViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-'''
+"""
 # class RegisterUserView(APIView):
 #     permission_classes = [AllowAny]
 
@@ -145,14 +145,22 @@ class RegisterUserViewSet(ViewSet):
 #                     status=status.HTTP_400_BAD_REQUEST,
 #                 )
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
+"""
 
 
-class LoginView(APIView):
+class LoginViewSet(ViewSet):
     permission_classes = [AllowAny]  # Allow unauthenticated users to access
-    throttle_classes = [UserRateThrottle]
+    # throttle_classes = [UserRateThrottle]
 
-    def post(self, request):
+    @extend_schema(
+        # This links the serializer for the request body
+        request=LoginSerializer,
+        responses={
+            201: LoginSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def create(self, request):
         if self.is_rate_limited(request):
             raise ValidationError("Too many login attempts. Try again later.")
 
@@ -179,7 +187,7 @@ class LoginView(APIView):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 5:
+        if attempts >= 2:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
@@ -194,31 +202,21 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-'''
-# class LoggedInUser(APIView):
+class LoggedInUserViewSet(ViewSet):
+    #     """
+    #     API to get details of the logged-in user.
+    #     """
+    authentication_classes = [IsAuthenticated]
 
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     def get(self, request):
-#         try:
-#             user = request.user  # Get the logged-in user
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
-
-
-class LoggedInUser(APIView):
-    """
-    API to get details of the logged-in user.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
+    @extend_schema(
+        # This links the serializer for the request body
+        request=UserSerializer,
+        responses={
+            201: UserSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def create(self, request):
         try:
             user = request.user
             if user.is_anonymous:
@@ -234,6 +232,42 @@ class LoggedInUser(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # try:
+
+
+
+# class LoggedInUserAPIView(APIView):
+#     """
+#     API to get details of the logged-in user.
+#     """
+
+#     permission_classes = [IsAuthenticated]
+
+#     @extend_schema(
+#         # This links the serializer for the request body
+#         request=UserSerializer,
+#         responses={
+#             201: UserSerializer
+#         },  # Expected response will be the created category
+#         tags=["accounts"],
+#     )
+#     def post(self, request):
+#         try:
+#             user = request.user
+#             if user.is_anonymous:
+#                 return Response(
+#                     {"error": "User not authenticated"},
+#                     status=status.HTTP_401_UNAUTHORIZED,
+#                 )
+#             serializer = UserSerializer(user)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except ObjectDoesNotExist:
+#             return Response(
+#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUserImage(APIView):
@@ -385,6 +419,7 @@ class PostDeleteView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
 # working with it
 
 
@@ -396,17 +431,12 @@ class HomeViewSet(ViewSet):
         },  # Expected response will be the created category
         tags=["accounts"],
     )
-    # permission_classes = [AllowAny]
-    # pagination_class = CustomCursorPagination
-    # def list(self, request):
-    #     queryset = Post.objects.all().order_by('-created_at')
-    #     serializer = PostSerializer(queryset, many=True, context={'request': request})
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
     def list(self, request):
         try:
             queryset = Post.objects.all()
             serializer = PostSerializer(
-                queryset, many=True, context={"request": request})
+                queryset, many=True, context={"request": request}
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -543,8 +573,7 @@ class SendVerificationEmail(APIView):
 
         # Generate verification link
         verification_link = f"http://{get_current_site(request).domain}{
-            reverse('email_verification', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('email_verification', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send verification email
@@ -604,8 +633,7 @@ class RequestPasswordReset(APIView):
 
         # Generate the reset password link
         reset_password_link = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send the reset email
@@ -682,8 +710,7 @@ class PasswordResetLinkController(APIView):
 
         # Generate the password reset URL
         reset_url = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send email with the password reset link
@@ -751,8 +778,7 @@ def send_verification_email(user):
             "verification_url": verification_url,
         },
     )
-    send_mail(email_subject, email_message,
-              settings.DEFAULT_FROM_EMAIL, [user.email])
+    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 class UserViewSet(viewsets.ModelViewSet):

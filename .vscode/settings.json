@@ -1,0 +1,11 @@
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+        },
+        "source.organizeImports": true,
+        "source.addMissingImports": true,
+        "source.removeUnusedImports": true,
+        "source.sortImports": true,
+    }
+}

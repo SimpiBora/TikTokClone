@@ -217,3 +217,23 @@ useRuntimeConfig().public.apiBase
 ---
 
 This setup is modular, scalable, and aligned with Nuxt 3 best practices to connect with your DRF API backend effectively.
+
+
+
+# 1. Switch to master branch
+git checkout master
+
+# 2. Replace master content with features
+git reset --hard features
+
+# 3. Push the changes to remote (forcefully)
+git push origin master --force
+
+# 1. Switch to master branch
+git checkout master
+
+# 2. Merge the features branch into master
+git merge features
+
+# 3. Push the changes
+git push origin master

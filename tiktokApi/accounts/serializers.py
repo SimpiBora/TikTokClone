@@ -2,10 +2,12 @@ from django.conf import settings
 from comments.serializers import CommentSerializer
 from like.serializers import LikeSerializer
 from like.models import Like
+
 # from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.utils.html import format_html
 from .models import Post
+
 # from .models import Post, Comment, Like
 # from .models import Post, Comment, Like, User
 from rest_framework import serializers
@@ -16,7 +18,7 @@ from rest_framework import serializers
 from .models import User
 
 
-'''
+"""
 {
     "name": "mike",
     "email": "mike@example.com",
@@ -25,7 +27,7 @@ from .models import User
     "first_name":"mike",
     "last_name":"vi"
 }
-'''
+"""
 
 # from rest_framework import serializers
 # from .models import User
@@ -36,17 +38,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'name', 'password',
-                  'password_confirmation']  # Include required fields
+        fields = [
+            "name",
+            "email",
+            "password",
+            "password_confirmation",
+        ]  # Include required fields
         extra_kwargs = {
-            'password': {'write_only': True},  # Ensure password is write-only
+            "password": {"write_only": True},  # Ensure password is write-only
         }
 
     def validate(self, data):
         """
         Ensure passwords match.
         """
-        if data['password'] != data['password_confirmation']:
+        if data["password"] != data["password_confirmation"]:
             raise serializers.ValidationError("Passwords must match.")
         return data
 
@@ -55,9 +61,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         Ensure email is unique.
         """
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError(
-                "A user with this email already exists."
-            )
+            raise serializers.ValidationError("A user with this email already exists.")
         return value
 
     def create(self, validated_data):
@@ -65,12 +69,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         Create a new user after removing password_confirmation.
         """
         # Remove password_confirmation from validated_data
-        validated_data.pop('password_confirmation', None)
+        validated_data.pop("password_confirmation", None)
         # Use create_user to ensure password is hashed
         user = User.objects.create_user(
-            email=validated_data['email'],
-            name=validated_data.get('name', ''),
-            password=validated_data['password']
+            email=validated_data["email"],
+            name=validated_data.get("name", ""),
+            password=validated_data["password"],
         )
         return user
 
@@ -88,12 +92,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'name', 'bio', 'image']
+        fields = ["id", "username", "email", "name", "bio", "image"]
 
     def get_image(self, obj):
         if obj.image:
-            request = self.context.get('request')
-            return request.build_absolute_uri(obj.image.url) if request else f"{settings.MEDIA_URL}{obj.image.url}"
+            request = self.context.get("request")
+            return (
+                request.build_absolute_uri(obj.image.url)
+                if request
+                else f"{settings.MEDIA_URL}{obj.image.url}"
+            )
         return None
 
 
@@ -105,9 +113,8 @@ class UpdateUserImageSerializer(serializers.Serializer):
     image = serializers.ImageField()
 
     def validate(self, data):
-        if data['height'] <= 0 or data['width'] <= 0:
-            raise serializers.ValidationError(
-                "Height and width must be positive.")
+        if data["height"] <= 0 or data["width"] <= 0:
+            raise serializers.ValidationError("Height and width must be positive.")
         return data
 
 
@@ -120,16 +127,17 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'text', 'video',
-                  'created_at', 'comments', 'likes', 'user']
+        fields = ["id", "text", "video", "created_at", "comments", "likes", "user"]
 
     def get_user(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         return {
-            'id': obj.user.id,
-            'name': obj.user.name,
-            'email': obj.user.email,
-            'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}'"
+            "id": obj.user.id,
+            "name": obj.user.name,
+            "email": obj.user.email,
+            "image": request.build_absolute_uri(obj.user.image.url)
+            if request
+            else f"{settings.MEDIA_URL}{obj.user.image.url}'",
             # 'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
         }
 
@@ -139,9 +147,13 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_video(self, obj):
         if obj.video:
-            print('obj is comming ---->>>', obj)
-            request = self.context.get('request')
-            return request.build_absolute_uri(obj.video.url) if request else f"{settings.MEDIA_URL}{obj.video.url}"
+            print("obj is comming ---->>>", obj)
+            request = self.context.get("request")
+            return (
+                request.build_absolute_uri(obj.video.url)
+                if request
+                else f"{settings.MEDIA_URL}{obj.video.url}"
+            )
         return None
 
     def get_created_at(self, obj):

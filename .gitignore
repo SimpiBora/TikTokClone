@@ -10,7 +10,7 @@ dist
 node_modules
 
 # pyblics 
-public/*images
+public/images
 public/images
 
 # Logs
@@ -72,7 +72,7 @@ MANIFEST
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+*cache
 # Unit test / coverage reports
 htmlcov/
 .tox/
