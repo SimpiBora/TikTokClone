@@ -58,16 +58,28 @@ from pagination.custompagination import (
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 
-
+# drf spectacular schema
+from drf_spectacular.utils import (
+    extend_schema,
+)
 # rewrite this code to use the CSRF token in the header using viewsets
+
+
 class CSRFTokenViewSet(ViewSet):
-    """
-    Provides a CSRF token to the client as a cookie.
-    """
 
     authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
+    """
+    Provides a CSRF token to the client as a cookie.
+    """
+    @extend_schema(
+        # request=PostSerializer,  # This links the serializer for the request body
+        # responses={
+        #     201: PostSerializer
+        # },  # Expected response will be the created category
+        tags=["accounts"],
+    )
     def list(self, request, *args, **kwargs):
         csrf_token = get_token(request)  # Generate or retrieve CSRF token
         response = JsonResponse({"detail": "CSRF cookie set"})
@@ -80,6 +92,14 @@ class RegisterUserViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
+    @extend_schema(
+        # This links the serializer for the request body
+        request=UserRegistrationSerializer,
+        responses={
+            201: UserRegistrationSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
     def create(self, request):
         '''
         Registering a user
@@ -369,22 +389,27 @@ class PostDeleteView(APIView):
 
 
 class HomeViewSet(ViewSet):
+    @extend_schema(
+        request=PostSerializer,  # This links the serializer for the request body
+        responses={
+            201: PostSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
     # permission_classes = [AllowAny]
     # pagination_class = CustomCursorPagination
-
-    def list(self, request):
-        queryset = Post.objects.all().order_by('-created_at')
-        serializer = PostSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     # def list(self, request):
-    #     try:
-    #         queryset = Post.objects.all()
-    #         serializer = PostSerializer(
-    #             queryset, many=True, context={"request": request})
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except Exception as e:
-    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #     queryset = Post.objects.all().order_by('-created_at')
+    #     serializer = PostSerializer(queryset, many=True, context={'request': request})
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+    def list(self, request):
+        try:
+            queryset = Post.objects.all()
+            serializer = PostSerializer(
+                queryset, many=True, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 '''
@@ -439,7 +464,39 @@ class ProfileView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GlobalView(APIView):
+class GetRandomUsersViewSet(ViewSet):
+    @extend_schema(
+        request=UserSerializer,  # This links the serializer for the request body
+        responses={
+            201: UserSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def list(self, request):
+        try:
+            # Fetch random users for suggestions (limit to 5)
+            suggested_users = User.objects.order_by("?")[:5]
+            # Fetch random users for following (limit to 10)
+            following_users = User.objects.order_by("?")[:10]
+
+            # Serialize the data
+            suggested_serializer = UserSerializer(suggested_users, many=True)
+            following_serializer = UserSerializer(following_users, many=True)
+
+            return Response(
+                {
+                    "suggested": suggested_serializer.data,
+                    "following": following_serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+class GlobalViewSet(APIView):
     permission_classes = [AllowAny]
 
     """
@@ -467,6 +524,7 @@ class GlobalView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+'''
 
 
 class SendVerificationEmail(APIView):
