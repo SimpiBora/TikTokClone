@@ -12,7 +12,6 @@ node_modules
 # pyblics 
 public/*images
 public/images
-images
 
 # Logs
 logs
