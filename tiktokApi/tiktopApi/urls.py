@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/", include("like.urls")),
     path("api/", include("comments.urls")),
     path("api/", include("search.urls")),
+    path("api/", include("postsapi.urls")),
     # DRF Spectacular schema and docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

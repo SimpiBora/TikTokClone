@@ -2,15 +2,13 @@ from rest_framework.pagination import PageNumberPagination
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
+from postsapi.serializers import PostSerializer
 from .serializers import (
     UserSerializer,
     UsersCollectionSerializer,
-    PostSerializer,
-    PostSerializer,
     # AllPostsSerializer,
     UpdateUserImageSerializer,
     CommentSerializer,
-    PostSerializer,
     UserRegistrationSerializer,
 )
 from rest_framework import viewsets
@@ -36,8 +34,9 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from .models import Post, User, Post
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
 from .services import FileService
 from django.core.files.storage import default_storage
@@ -423,23 +422,25 @@ class PostDeleteView(APIView):
 # working with it
 
 
-class HomeViewSet(ViewSet):
-    @extend_schema(
-        request=PostSerializer,  # This links the serializer for the request body
-        responses={
-            201: PostSerializer
-        },  # Expected response will be the created category
-        tags=["accounts"],
-    )
-    def list(self, request):
-        try:
-            queryset = Post.objects.all()
-            serializer = PostSerializer(
-                queryset, many=True, context={"request": request}
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+# class HomeViewSet(ViewSet):
+#     @extend_schema(
+#         request=PostSerializer,  # This links the serializer for the request body
+#         responses={
+#             201: PostSerializer
+#         },  # Expected response will be the created category
+#         tags=["accounts"],
+#     )
+#     def list(self, request):
+#         try:
+#             queryset = Post.objects.all()
+#             serializer = PostSerializer(
+#                 queryset, many=True, context={"request": request}
+#             )
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response(
+#                 {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
+#             )
 
 
 '''

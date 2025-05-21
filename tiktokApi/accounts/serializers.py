@@ -6,7 +6,7 @@ from like.models import Like
 # from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.utils.html import format_html
-from .models import Post
+# from .models import Post
 
 # from .models import Post, Comment, Like
 # from .models import Post, Comment, Like, User
@@ -115,46 +115,59 @@ class UpdateUserImageSerializer(serializers.Serializer):
         return data
 
 
-class PostSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    comments = CommentSerializer(many=True)
-    likes = LikeSerializer(many=True)
-    video = serializers.SerializerMethodField()
-    created_at = serializers.SerializerMethodField()
+# class PostSerializer(serializers.ModelSerializer):
+#     user = serializers.SerializerMethodField()
+#     comments = CommentSerializer(many=True)
+#     likes = LikeSerializer(many=True)
+#     video = serializers.SerializerMethodField()
+#     created_at = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Post
-        fields = ["id", "text", "video", "created_at", "comments", "likes", "user"]
+#     class Meta:
+#         model = Post
+#         fields = ["id", "text", "video", "created_at", "comments", "likes", "user"]
+#         # fields = ["id", "text", "video", "created_at","likes", "user"]
 
-    def get_user(self, obj):
-        request = self.context.get("request")
-        return {
-            "id": obj.user.id,
-            "name": obj.user.name,
-            "email": obj.user.email,
-            "image": request.build_absolute_uri(obj.user.image.url)
-            if request
-            else f"{settings.MEDIA_URL}{obj.user.image.url}'",
-            # 'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
-        }
+#     # def get_user(self, obj):
+#     #     request = self.context.get("request")
+#     #     return {
+#     #         "id": obj.user.id,
+#     #         "name": obj.user.name,
+#     #         "email": obj.user.email,
+#     #         "image": request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}'",
+#     #         # 'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
+#     #     }
 
-    # def get_video(self, obj):
-    #     # return format_html(f'{obj.video.url}' if obj.video else None)
-    #     return (f'{obj.video.url}' if obj.video else None)
+#     def get_user(self, obj):
+#         request = self.context.get("request")
+#         user = obj.user
 
-    def get_video(self, obj):
-        if obj.video:
-            print("obj is comming ---->>>", obj)
-            request = self.context.get("request")
-            return (
-                request.build_absolute_uri(obj.video.url)
-                if request
-                else f"{settings.MEDIA_URL}{obj.video.url}"
-            )
-        return None
+#         image_url = None
+#         if hasattr(user, "image") and user.image:
+#             if request:
+#                 image_url = request.build_absolute_uri(user.image.url)
+#             else:
+#                 image_url = f"{settings.MEDIA_URL}{user.image.url}"
 
-    def get_created_at(self, obj):
-        return obj.created_at.strftime("%b %d %Y")
+#         return {
+#             "id": user.id,
+#             "name": user.name,
+#             "email": user.email,
+#             "image": image_url,
+#         }
+
+#     def get_video(self, obj):
+#         if obj.video:
+#             print("obj is comming ---->>>", obj)
+#             request = self.context.get("request")
+#             return (
+#                 request.build_absolute_uri(obj.video.url)
+#                 if request
+#                 else f"{settings.MEDIA_URL}{obj.video.url}"
+#             )
+#         return None
+
+#     def get_created_at(self, obj):
+#         return obj.created_at.strftime("%b %d %Y")
 
 
 class LoginSerializer(serializers.Serializer):
