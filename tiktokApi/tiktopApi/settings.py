@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # internal apps
     'core',
-    # "api",
+    "postsapi",
     'accounts',
     "like",
     "comments",

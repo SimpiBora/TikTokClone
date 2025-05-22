@@ -233,41 +233,6 @@ class LoggedInUserViewSet(ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # try:
-
-
-# class LoggedInUserAPIView(APIView):
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     permission_classes = [IsAuthenticated]
-
-#     @extend_schema(
-#         # This links the serializer for the request body
-#         request=UserSerializer,
-#         responses={
-#             201: UserSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def post(self, request):
-#         try:
-#             user = request.user
-#             if user.is_anonymous:
-#                 return Response(
-#                     {"error": "User not authenticated"},
-#                     status=status.HTTP_401_UNAUTHORIZED,
-#                 )
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except ObjectDoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UpdateUserImage(APIView):
     """
