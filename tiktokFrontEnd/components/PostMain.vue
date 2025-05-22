@@ -92,25 +92,27 @@ let video = ref(null)
 // })
 
 onMounted(() => {
-    const el = document.getElementById(`PostMain-${post.value.id}`);
-    if (!el || !post.value.video) return; // ✅ Skip observer if no video
-
     let observer = new IntersectionObserver(function (entries) {
-        if (!video.value) return; // ✅ Video element not in DOM
+        if (!video.value) return; // Prevents error if video is not yet assigned
 
         if (entries[0].isIntersecting) {
             console.log('Element is playing ' + post.value.id);
-            video.value.play().catch(err => {
-                console.warn("Autoplay error:", err);
-            });
+            video.value.play();
         } else {
             console.log('Element is paused ' + post.value.id);
             video.value.pause();
         }
     }, { threshold: [0.6] });
 
-    observer.observe(el);
+    const element = document.getElementById(`PostMain-${post.value.id}`);
+    if (element) {
+        observer.observe(element);
+    } else {
+        console.warn(`Element PostMain-${post.value.id} not found`);
+    }
 });
+
+
 
 onBeforeUnmount(() => {
     video.value.pause()
