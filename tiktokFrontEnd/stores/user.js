@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async register(name, email, password, confirmPassword) {
-      await $axios.post('/register', {
+      await $axios.post('/api/registeruser/', {
         name: name,
         email: email,
         password: password,
@@ -34,7 +34,8 @@ export const useUserStore = defineStore('user', {
     },
 
     async getUser() {
-      let res = await $axios.get('/api/logged-in-user')
+      // let res = await $axios.get('/api/logged-in-user')
+      let res = await $axios.get('/api/loggedinuser/')
 
       this.$state.id = res.data[0].id
       this.$state.name = res.data[0].name
