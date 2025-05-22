@@ -18,7 +18,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .serializers import (
     LoginSerializer,
-    # AllPostsSerializer,
     UpdateUserImageSerializer,
     UserRegistrationSerializer,
     UsersCollectionSerializer,
