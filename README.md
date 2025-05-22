@@ -6,10 +6,36 @@ uv pip install -r requirements.txt
 ## To Install From an Existing pyproject.toml
 uv pip install -r pyproject.toml
 
+<<<<<<< HEAD
 ## python manage.py makemigrations accounts comments like postsapi 
 python manage.py makemigrations accounts comments like postsapi 
 python manage.py migrate
 python manage.py createsuperuser
+=======
+## python manage.py makemigrations
+python manage.py makemigrations accounts like
+python manage.py migrate
+
+## python manage.py migrate
+python manage.py migrate
+
+## python manage.py createsuperuser
+python manage.py createsuperuser
+admin@gmail.com
+admin
+admin
+
+## all in one
+python manage.py makemigrations accounts like comments
+python manage.py migrate
+python manage.py createsuperuser
+Email: admin1@gmail.com
+Username: admin1
+Password: admin1
+Password (again): admin1
+
+
+>>>>>>> master
 
 <!-- I CREATE MODELS
 ACCOUNTS ( FOR USER LOGIN REGISTER LIKE WORK )

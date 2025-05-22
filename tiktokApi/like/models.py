@@ -1,6 +1,14 @@
 from django.core.cache import cache
 from django.db import models
-from accounts.models import Post, AutoUpdate, User
+# from accounts.models import Post, AutoUpdate, User
+
+from postsapi.models import Post
+
+# from accounts.models import AutoUpdate, User
+from core.models import AutoUpdate
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class LikeManager(models.Manager):
@@ -9,16 +17,8 @@ class LikeManager(models.Manager):
 
 
 class Like(AutoUpdate):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='likes'
-    )
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='likes'
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="likes")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
 
     objects = LikeManager()
 

@@ -1,5 +1,11 @@
 from django.db import models
-from accounts.models import User, Post, AutoUpdate
+
+# from accounts.models import User, Post, AutoUpdate
+from core.models import AutoUpdate
+from django.contrib.auth import get_user_model
+from postsapi.models import Post
+
+User = get_user_model()
 
 
 # class Comment(AutoUpdate):
@@ -22,17 +28,10 @@ from accounts.models import User, Post, AutoUpdate
 # from django.db import models
 from django.core.exceptions import ValidationError
 
+
 class Comment(AutoUpdate):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     text = models.TextField()
     # created_at = models.DateTimeField(auto_now_add=True)
     # updated_at = models.DateTimeField(auto_now=True)
@@ -48,6 +47,6 @@ class Comment(AutoUpdate):
         verbose_name = "Comment"
         verbose_name_plural = "Comments"
         indexes = [
-            models.Index(fields=['post']),
-            models.Index(fields=['user']),
+            models.Index(fields=["post"]),
+            models.Index(fields=["user"]),
         ]

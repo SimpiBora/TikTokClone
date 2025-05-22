@@ -40,7 +40,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # internal apps
     'core',
+<<<<<<< HEAD
     "postsapi",
+=======
+    'postsapi',
+    # "api",
+>>>>>>> master
     'accounts',
     "like",
     "comments",
