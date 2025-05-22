@@ -76,20 +76,41 @@ const router = useRouter()
 
 let video = ref(null)
 
-onMounted(() => {
-    let observer = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
-            console.log('Element is playing' + post.value.id);
-            video.value.play()
-        } else {
-            console.log('Element is paused' + post.value.id);
-            video.value.pause()
-        }
+// onMounted(() => {
+//     let observer = new IntersectionObserver(function (entries) {
+//         if (entries[0].isIntersecting) {
+//             console.log('Element is playing' + post.value.id);
+//             video.value.play()
+//         } else {
+//             console.log('Element is paused' + post.value.id);
+//             video.value.pause()
+//         }
 
+//     }, { threshold: [0.6] });
+
+//     observer.observe(document.getElementById(`PostMain-${post.value.id}`));
+// })
+
+onMounted(() => {
+    const el = document.getElementById(`PostMain-${post.value.id}`);
+    if (!el || !post.value.video) return; // ✅ Skip observer if no video
+
+    let observer = new IntersectionObserver(function (entries) {
+        if (!video.value) return; // ✅ Video element not in DOM
+
+        if (entries[0].isIntersecting) {
+            console.log('Element is playing ' + post.value.id);
+            video.value.play().catch(err => {
+                console.warn("Autoplay error:", err);
+            });
+        } else {
+            console.log('Element is paused ' + post.value.id);
+            video.value.pause();
+        }
     }, { threshold: [0.6] });
 
-    observer.observe(document.getElementById(`PostMain-${post.value.id}`));
-})
+    observer.observe(el);
+});
 
 onBeforeUnmount(() => {
     video.value.pause()
