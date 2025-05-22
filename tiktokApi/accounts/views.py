@@ -1,66 +1,47 @@
-from rest_framework.pagination import PageNumberPagination
-from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from postsapi.serializers import PostSerializer
+from rest_framework import status, viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from .serializers import (
-    UserSerializer,
-    UsersCollectionSerializer,
+    LoginSerializer,
     # AllPostsSerializer,
     UpdateUserImageSerializer,
-    CommentSerializer,
     UserRegistrationSerializer,
+    UsersCollectionSerializer,
+    UserSerializer,
 )
-from rest_framework import viewsets
-from django.core.cache import cache
-from rest_framework.throttling import UserRateThrottle
-from .serializers import LoginSerializer
-from django.conf import settings
-from django.utils.http import urlsafe_base64_decode
-from django.core.exceptions import ValidationError
-from django.contrib.auth.signals import user_logged_in
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import login
-from rest_framework.permissions import AllowAny
-from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
-from .services import FileService
 from django.core.files.storage import default_storage
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 # from django.contrib.auth.models import User
-from .services import FileService  # Assuming FileService is implemented
-from django.shortcuts import get_object_or_404, redirect
-
-from pagination.custompagination import (
-    CustomPageNumberPagination,
-    CustomCursorPagination,
-)
-
-
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 # drf spectacular schema
 from drf_spectacular.utils import (
     extend_schema,
 )
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
+
+from .services import FileService
+
 # rewrite this code to use the CSRF token in the header using viewsets
 
 
@@ -88,7 +69,7 @@ class CSRFTokenViewSet(ViewSet):
 
 
 class RegisterUserViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
+    # authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
@@ -115,7 +96,7 @@ class RegisterUserViewSet(ViewSet):
                 token = Token.objects.create(user=user)
 
                 return Response({"token": token.key}, status=status.HTTP_201_CREATED)
-            except InterruptedError as e:
+            except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -164,7 +145,7 @@ class LoginViewSet(ViewSet):
             raise ValidationError("Too many login attempts. Try again later.")
 
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
 
@@ -186,7 +167,7 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 2:
+        if attempts >= 3:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
