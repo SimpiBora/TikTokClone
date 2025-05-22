@@ -28,6 +28,11 @@ export const useGeneralStore = defineStore('general', {
     // allLowerCaseNoCaps(str) {
     //   return str.split(' ').join('').toLowerCase()
     // },
+    allLowerCaseNoCaps(str) {
+      if (!str || typeof str !== 'string') return ''
+      return str.split(' ').join('-').toLowerCase()
+    },
+
 
     setBackUrl(url) {
       this.isBackUrl = url
@@ -64,7 +69,8 @@ export const useGeneralStore = defineStore('general', {
     },
 
     async getRandomUsers(type) {
-      let res = await $axios.get(`/api/get-random-users`)
+      // let res = await $axios.get(`/api/get-random-users`)
+      let res = await $axios.get(`/api/getrandomusers/`)
 
       if (type === 'suggested') {
         this.suggested = res.data.suggested

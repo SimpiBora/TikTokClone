@@ -7,8 +7,10 @@
             <div class="flex items-center justify-between pb-0.5">
                 <button @click="isLoggedIn(post.user)">
                     <span class="font-bold hover:underline cursor-pointer">
-                        <!-- {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} -->
-                        {{ 'all data' }} <!-- need to word here -->
+                        <!-- {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} original one -->
+                        <!-- <p v-if="post.user?.name">{{ allLowerCaseNoCaps(user.name) }}</p> -->
+                        {{ $generalStore.allLowerCaseNoCaps(post.user?.name) }}
+                        <!-- <p>{{ user?.name ? allLowerCaseNoCaps(user.name) : '' }}</p> -->
                     </span>
                     <span class="text-[13px] text-light text-gray-500 pl-1 cursor-pointer">
                         {{ post.user.name }}
@@ -74,20 +76,43 @@ const router = useRouter()
 
 let video = ref(null)
 
+// onMounted(() => {
+//     let observer = new IntersectionObserver(function (entries) {
+//         if (entries[0].isIntersecting) {
+//             console.log('Element is playing' + post.value.id);
+//             video.value.play()
+//         } else {
+//             console.log('Element is paused' + post.value.id);
+//             video.value.pause()
+//         }
+
+//     }, { threshold: [0.6] });
+
+//     observer.observe(document.getElementById(`PostMain-${post.value.id}`));
+// })
+
 onMounted(() => {
     let observer = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
-            console.log('Element is playing' + post.value.id);
-            video.value.play()
-        } else {
-            console.log('Element is paused' + post.value.id);
-            video.value.pause()
-        }
+        if (!video.value) return; // Prevents error if video is not yet assigned
 
+        if (entries[0].isIntersecting) {
+            console.log('Element is playing ' + post.value.id);
+            video.value.play();
+        } else {
+            console.log('Element is paused ' + post.value.id);
+            video.value.pause();
+        }
     }, { threshold: [0.6] });
 
-    observer.observe(document.getElementById(`PostMain-${post.value.id}`));
-})
+    const element = document.getElementById(`PostMain-${post.value.id}`);
+    if (element) {
+        observer.observe(element);
+    } else {
+        console.warn(`Element PostMain-${post.value.id} not found`);
+    }
+});
+
+
 
 onBeforeUnmount(() => {
     video.value.pause()

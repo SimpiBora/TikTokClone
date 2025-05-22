@@ -44,11 +44,14 @@ class User(AbstractUser):
     """
 
     bio = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to="user_images/",
-                              blank=True, null=True)
+    image = models.ImageField(upload_to="user_images/", blank=True, null=True)
     email = models.EmailField(unique=True)  # Email as the unique identifier
     username = models.CharField(
-        max_length=150, unique=False, blank=True, null=True, help_text='This Field is not Required'
+        max_length=150,
+        unique=False,
+        blank=True,
+        null=True,
+        help_text="This Field is not Required",
     )  # Make username optional
     name = models.CharField(max_length=255, blank=True, null=True)
 
@@ -62,20 +65,18 @@ class User(AbstractUser):
         return self.email
 
 
-class Post(AutoUpdate):
-    # user = models.ForeignKey('api.User', on_delete=models.CASCADE)  # Use 'api.User'
-    user = models.ForeignKey(
-        User,  # Refers to the custom User model
-        on_delete=models.CASCADE,
-        related_name="posts",  # Reverse relationship (user.posts.all())
-    )
-    text = models.TextField()
-    video = models.FileField(
-        upload_to="videos/", null=True, blank=True)
-    # created_at = models.DateTimeField(auto_now_add=True)
+# class Post(AutoUpdate):
+#     # user = models.ForeignKey('api.User', on_delete=models.CASCADE)  # Use 'api.User'
+#     user = models.ForeignKey(
+#         User,  # Refers to the custom User model
+#         on_delete=models.CASCADE,
+#         related_name="posts",  # Reverse relationship (user.posts.all())
+#     )
+#     text = models.TextField()
+#     video = models.FileField(upload_to="videos/", null=True, blank=True)
 
-    def __str__(self):
-        return f"Post by {self.user.username} on {self.text}"
+#     def __str__(self):
+#         return f"Post by {self.user.username} on {self.text}"
 
-    class Meta:
-        ordering = ["-created_at"]  # Latest posts appear first
+#     class Meta:
+#         ordering = ["-created_at"]  # Latest posts appear first

@@ -6,6 +6,29 @@ uv pip install -r requirements.txt
 ## To Install From an Existing pyproject.toml
 uv pip install pyproject.toml
 
+## python manage.py makemigrations
+python manage.py makemigrations accounts like
+python manage.py migrate
+
+## python manage.py migrate
+python manage.py migrate
+
+## python manage.py createsuperuser
+python manage.py createsuperuser
+admin@gmail.com
+admin
+admin
+
+## all in one
+python manage.py makemigrations accounts like comments
+python manage.py migrate
+python manage.py createsuperuser
+Email: admin1@gmail.com
+Username: admin1
+Password: admin1
+Password (again): admin1
+
+
 
 <!-- I CREATE MODELS
 ACCOUNTS ( FOR USER LOGIN REGISTER LIKE WORK )
@@ -217,3 +240,23 @@ useRuntimeConfig().public.apiBase
 ---
 
 This setup is modular, scalable, and aligned with Nuxt 3 best practices to connect with your DRF API backend effectively.
+
+
+
+# 1. Switch to master branch
+git checkout master
+
+# 2. Replace master content with features
+git reset --hard features
+
+# 3. Push the changes to remote (forcefully)
+git push origin master --force
+
+# 1. Switch to master branch
+git checkout master
+
+# 2. Merge the features branch into master
+git merge features
+
+# 3. Push the changes
+git push origin master

@@ -21,3 +21,6 @@ Error --->
 
 Start Adding ---->
 	ViewSets not ( ApiView )
+
+
+**** All Posts Related Work Would in PostsApi Module  ****

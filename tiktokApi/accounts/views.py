@@ -1,73 +1,65 @@
-from rest_framework.pagination import PageNumberPagination
-from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from postsapi.serializers import PostSerializer
+from rest_framework import status, viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from .serializers import (
-    UserSerializer,
-    UsersCollectionSerializer,
-    PostSerializer,
-    PostSerializer,
+    LoginSerializer,
     # AllPostsSerializer,
     UpdateUserImageSerializer,
-    CommentSerializer,
-    PostSerializer,
     UserRegistrationSerializer,
+    UsersCollectionSerializer,
+    UserSerializer,
 )
-from rest_framework import viewsets
-from django.core.cache import cache
-from rest_framework.throttling import UserRateThrottle
-from .serializers import LoginSerializer
-from django.conf import settings
-from django.utils.http import urlsafe_base64_decode
-from django.core.exceptions import ValidationError
-from django.contrib.auth.signals import user_logged_in
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import login
-from rest_framework.permissions import AllowAny
-from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
-from .models import Post, User, Post
 
+User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
-from .services import FileService
 from django.core.files.storage import default_storage
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 # from django.contrib.auth.models import User
-from .services import FileService  # Assuming FileService is implemented
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 
-from pagination.custompagination import (
-    CustomPageNumberPagination,
-    CustomCursorPagination,
+# drf spectacular schema
+from drf_spectacular.utils import (
+    extend_schema,
 )
-
-
-from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
+from .services import FileService
 
 # rewrite this code to use the CSRF token in the header using viewsets
+
+
 class CSRFTokenViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
+
     """
     Provides a CSRF token to the client as a cookie.
     """
 
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
-
+    @extend_schema(
+        # request=PostSerializer,  # This links the serializer for the request body
+        # responses={
+        #     201: PostSerializer
+        # },  # Expected response will be the created category
+        tags=["accounts"],
+    )
     def list(self, request, *args, **kwargs):
         csrf_token = get_token(request)  # Generate or retrieve CSRF token
         response = JsonResponse({"detail": "CSRF cookie set"})
@@ -77,14 +69,22 @@ class CSRFTokenViewSet(ViewSet):
 
 
 class RegisterUserViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
+    # authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
+    @extend_schema(
+        # This links the serializer for the request body
+        request=UserRegistrationSerializer,
+        responses={
+            201: UserRegistrationSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
     def create(self, request):
-        '''
+        """
         Registering a user
 
-        '''
+        """
         serializer = UserRegistrationSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
@@ -96,7 +96,7 @@ class RegisterUserViewSet(ViewSet):
                 token = Token.objects.create(user=user)
 
                 return Response({"token": token.key}, status=status.HTTP_201_CREATED)
-            except InterruptedError as e:
+            except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -104,7 +104,7 @@ class RegisterUserViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-'''
+"""
 # class RegisterUserView(APIView):
 #     permission_classes = [AllowAny]
 
@@ -125,19 +125,27 @@ class RegisterUserViewSet(ViewSet):
 #                     status=status.HTTP_400_BAD_REQUEST,
 #                 )
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
+"""
 
 
-class LoginView(APIView):
+class LoginViewSet(ViewSet):
     permission_classes = [AllowAny]  # Allow unauthenticated users to access
-    throttle_classes = [UserRateThrottle]
+    # throttle_classes = [UserRateThrottle]
 
-    def post(self, request):
+    @extend_schema(
+        # This links the serializer for the request body
+        request=LoginSerializer,
+        responses={
+            201: LoginSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def create(self, request):
         if self.is_rate_limited(request):
             raise ValidationError("Too many login attempts. Try again later.")
 
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
 
@@ -159,7 +167,7 @@ class LoginView(APIView):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 5:
+        if attempts >= 3:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
@@ -174,31 +182,21 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-'''
-# class LoggedInUser(APIView):
+class LoggedInUserViewSet(ViewSet):
+    #     """
+    #     API to get details of the logged-in user.
+    #     """
+    authentication_classes = [IsAuthenticated]
 
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     def get(self, request):
-#         try:
-#             user = request.user  # Get the logged-in user
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
-
-
-class LoggedInUser(APIView):
-    """
-    API to get details of the logged-in user.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
+    @extend_schema(
+        # This links the serializer for the request body
+        request=UserSerializer,
+        responses={
+            201: UserSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def create(self, request):
         try:
             user = request.user
             if user.is_anonymous:
@@ -214,6 +212,41 @@ class LoggedInUser(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # try:
+
+
+# class LoggedInUserAPIView(APIView):
+#     """
+#     API to get details of the logged-in user.
+#     """
+
+#     permission_classes = [IsAuthenticated]
+
+#     @extend_schema(
+#         # This links the serializer for the request body
+#         request=UserSerializer,
+#         responses={
+#             201: UserSerializer
+#         },  # Expected response will be the created category
+#         tags=["accounts"],
+#     )
+#     def post(self, request):
+#         try:
+#             user = request.user
+#             if user.is_anonymous:
+#                 return Response(
+#                     {"error": "User not authenticated"},
+#                     status=status.HTTP_401_UNAUTHORIZED,
+#                 )
+#             serializer = UserSerializer(user)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except ObjectDoesNotExist:
+#             return Response(
+#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUserImage(APIView):
@@ -298,6 +331,7 @@ class PostCreateView(APIView):
                 {"error": "The video field is required and must be a valid MP4 file."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         if "text" not in data:
             return Response(
                 {"error": "The text field is required."},
@@ -365,26 +399,29 @@ class PostDeleteView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
 # working with it
 
 
-class HomeViewSet(ViewSet):
-    # permission_classes = [AllowAny]
-    # pagination_class = CustomCursorPagination
-
-    def list(self, request):
-        queryset = Post.objects.all().order_by('-created_at')
-        serializer = PostSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def list(self, request):
-    #     try:
-    #         queryset = Post.objects.all()
-    #         serializer = PostSerializer(
-    #             queryset, many=True, context={"request": request})
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except Exception as e:
-    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+# class HomeViewSet(ViewSet):
+#     @extend_schema(
+#         request=PostSerializer,  # This links the serializer for the request body
+#         responses={
+#             201: PostSerializer
+#         },  # Expected response will be the created category
+#         tags=["accounts"],
+#     )
+#     def list(self, request):
+#         try:
+#             queryset = Post.objects.all()
+#             serializer = PostSerializer(
+#                 queryset, many=True, context={"request": request}
+#             )
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response(
+#                 {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
+#             )
 
 
 '''
@@ -439,7 +476,39 @@ class ProfileView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GlobalView(APIView):
+class GetRandomUsersViewSet(ViewSet):
+    @extend_schema(
+        request=UserSerializer,  # This links the serializer for the request body
+        responses={
+            201: UserSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+    def list(self, request):
+        try:
+            # Fetch random users for suggestions (limit to 5)
+            suggested_users = User.objects.order_by("?")[:5]
+            # Fetch random users for following (limit to 10)
+            following_users = User.objects.order_by("?")[:10]
+
+            # Serialize the data
+            suggested_serializer = UserSerializer(suggested_users, many=True)
+            following_serializer = UserSerializer(following_users, many=True)
+
+            return Response(
+                {
+                    "suggested": suggested_serializer.data,
+                    "following": following_serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+class GlobalViewSet(APIView):
     permission_classes = [AllowAny]
 
     """
@@ -467,6 +536,7 @@ class GlobalView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+'''
 
 
 class SendVerificationEmail(APIView):
@@ -485,8 +555,7 @@ class SendVerificationEmail(APIView):
 
         # Generate verification link
         verification_link = f"http://{get_current_site(request).domain}{
-            reverse('email_verification', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('email_verification', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send verification email
@@ -546,8 +615,7 @@ class RequestPasswordReset(APIView):
 
         # Generate the reset password link
         reset_password_link = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send the reset email
@@ -624,8 +692,7 @@ class PasswordResetLinkController(APIView):
 
         # Generate the password reset URL
         reset_url = f"http://{get_current_site(request).domain}{
-            reverse('password_reset_confirm', kwargs={
-                    'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
         }"
 
         # Send email with the password reset link
@@ -693,8 +760,7 @@ def send_verification_email(user):
             "verification_url": verification_url,
         },
     )
-    send_mail(email_subject, email_message,
-              settings.DEFAULT_FROM_EMAIL, [user.email])
+    send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 class UserViewSet(viewsets.ModelViewSet):
