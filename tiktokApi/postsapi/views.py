@@ -11,7 +11,7 @@ class HomeViewSet(ViewSet):
     @extend_schema(
         request=PostSerializer,  # This links the serializer for the request body
         responses={
-            201: PostSerializer
+            200: PostSerializer,  # This links the serializer for the response
         },  # Expected response will be the created category
         tags=["Posts"],
         summary="list all posts",
