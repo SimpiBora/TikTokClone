@@ -69,7 +69,7 @@ class CSRFTokenViewSet(ViewSet):
 
 
 class RegisterUserViewSet(ViewSet):
-    # authentication_classes = []  # Disable authentication for this route
+    authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
