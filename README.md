@@ -26,13 +26,15 @@ admin
 admin
 
 ## all in one
-python manage.py makemigrations accounts like comments
+python manage.py makemigrations accounts like comments postsapi core
 python manage.py migrate
 python manage.py createsuperuser
 Email: admin1@gmail.com
 Username: admin1
 Password: admin1
 Password (again): admin1
+
+python manage.py generate_posts
 
 
 >>>>>>> master
