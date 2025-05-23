@@ -89,7 +89,7 @@ class RegisterUserViewSet(ViewSet):
         print("serializer ---->", serializer)
         print("request.data ---->", request.data)
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             try:
                 # Create the user
                 user = serializer.save()
@@ -99,10 +99,11 @@ class RegisterUserViewSet(ViewSet):
                 token = Token.objects.create(user=user)
                 print("token ---->", token)
                 # send email verification
-                verify_email = send_verification_email(user)
 
                 return Response(
-                    {"token": token.key, "verified_email": verify_email},
+                    {
+                        "token": token.key,
+                    },
                     status=status.HTTP_201_CREATED,
                 )
             except InterruptedError:
@@ -111,30 +112,6 @@ class RegisterUserViewSet(ViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-"""
-# class RegisterUserView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         serializer = UserRegistrationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             try:
-#                 # Create the user
-#                 user = serializer.save()
-
-#                 # Optionally create a token
-#                 token = Token.objects.create(user=user)
-
-#                 return Response({"token": token.key}, status=status.HTTP_201_CREATED)
-#             except InterruptedError as e:
-#                 return Response(
-#                     {"error": "A user with this email or username already exists."},
-#                     status=status.HTTP_400_BAD_REQUEST,
-#                 )
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-"""
 
 
 class LoginViewSet(ViewSet):
@@ -374,51 +351,6 @@ class PostDeleteView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# working with it
-
-
-# class HomeViewSet(ViewSet):
-#     @extend_schema(
-#         request=PostSerializer,  # This links the serializer for the request body
-#         responses={
-#             201: PostSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def list(self, request):
-#         try:
-#             queryset = Post.objects.all()
-#             serializer = PostSerializer(
-#                 queryset, many=True, context={"request": request}
-#             )
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response(
-#                 {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
-#             )
-
-
-'''
-# class HomeView(APIView):
-#     permission_classes = [AllowAny]
-#     pagination_class = CustomCursorPagination
-#     # pagination_class = CustomPageNumberPagination
-
-#     """
-#     API to display all posts ordered by creation date.
-#     """
-
-#     def get(self, request):
-#         try:
-#             posts = Post.objects.all().order_by("-created_at")
-#             serializer = PostSerializer(
-#                 posts, many=True, context={"request": request})
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
-
-
 class ProfileView(APIView):
     """
     API to display the user's posts and profile information.
@@ -479,38 +411,6 @@ class GetRandomUsersViewSet(ViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-'''
-class GlobalViewSet(APIView):
-    permission_classes = [AllowAny]
-
-    """
-    API to get random suggested and followed users.
-    """
-
-    def get(self, request):
-        try:
-            # Fetch random users for suggestions (limit to 5)
-            suggested_users = User.objects.order_by("?")[:5]
-            # Fetch random users for following (limit to 10)
-            following_users = User.objects.order_by("?")[:10]
-
-            # Serialize the data
-            suggested_serializer = UserSerializer(suggested_users, many=True)
-            following_serializer = UserSerializer(following_users, many=True)
-
-            return Response(
-                {
-                    "suggested": suggested_serializer.data,
-                    "following": following_serializer.data,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
 
 
 class SendVerificationEmail(APIView):
