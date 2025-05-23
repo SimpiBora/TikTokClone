@@ -56,6 +56,8 @@ const register = async () => {
             email.value,
             password.value
         )
+        // $userStore.getUser() MADE BY ME 
+        $userStore.getUser()
         await $generalStore.getRandomUsers('suggested')
         await $generalStore.getRandomUsers('following')
         $generalStore.isLoginOpen = false

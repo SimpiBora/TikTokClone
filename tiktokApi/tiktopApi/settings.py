@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "search",
     # third party apps
     "drf_spectacular",
+    
     # external apps
     "rest_framework",
     "rest_framework.authtoken",
