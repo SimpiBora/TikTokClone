@@ -86,16 +86,25 @@ class RegisterUserViewSet(ViewSet):
 
         """
         serializer = UserRegistrationSerializer(data=request.data)
+        print("serializer ---->", serializer)
+        print("request.data ---->", request.data)
 
         if serializer.is_valid(raise_exception=True):
             try:
                 # Create the user
                 user = serializer.save()
+                print("user ---->", user)
 
                 # Optionally create a token
                 token = Token.objects.create(user=user)
+                print("token ---->", token)
+                # send email verification
+                verify_email = send_verification_email(user)
 
-                return Response({"token": token.key}, status=status.HTTP_201_CREATED)
+                return Response(
+                    {"token": token.key, "verified_email": verify_email},
+                    status=status.HTTP_201_CREATED,
+                )
             except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
