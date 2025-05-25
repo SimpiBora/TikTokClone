@@ -51,7 +51,8 @@
                             <div class="rounded-full bg-gray-200 p-2 cursor-pointer">
                                 <Icon name="bx:bxs-message-rounded-dots" size="25" />
                             </div>
-                            <span class="text-xs text-gray-800 font-semibold">43</span>
+                            <!-- <span class="text-xs text-gray-800 font-semibold">43</span> -->
+                             <span class="text-xs text-gray-800 font-semibold">{{ post.comment }} ---< Comment </span>
                         </div>
 
                         <div class="text-center">

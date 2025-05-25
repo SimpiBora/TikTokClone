@@ -132,7 +132,9 @@ class LoginViewSet(ViewSet):
 
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            print("inside is_valid ------> ", serializer.is_valid)
             email = serializer.validated_data["email"]
+            print("email ------> ", serializer.is_valid)
             password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
@@ -168,36 +170,71 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+from rest_framework.permissions import IsAuthenticated
+
+
 class LoggedInUserViewSet(ViewSet):
-    #     """
-    #     API to get details of the logged-in user.
-    #     """
-    authentication_classes = [IsAuthenticated]
+    """
+    API to get details of the logged-in user.
+    """
+
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        # This links the serializer for the request body
         request=UserSerializer,
-        responses={
-            201: UserSerializer
-        },  # Expected response will be the created category
+        responses={200: UserSerializer},
         tags=["accounts"],
     )
     def create(self, request):
-        try:
-            user = request.user
-            if user.is_anonymous:
-                return Response(
-                    {"error": "User not authenticated"},
-                    status=status.HTTP_401_UNAUTHORIZED,
-                )
-            serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
+        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
+        print(f"📨 [DEBUG] Request method: {request.method}")
+        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+
+        user = request.user
+        if user.is_anonymous:
+            print("⛔ [DEBUG] User is anonymous. Returning 401.")
             return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "User not authenticated"},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserSerializer(user)
+        print("✅ [DEBUG] Serialized user data:", serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# class LoggedInUserViewSet(ViewSet):
+#     #     """
+#     #     API to get details of the logged-in user.
+#     #     """
+#     authentication_classes = [IsAuthenticated]
+
+#     @extend_schema(
+#         # This links the serializer for the request body
+#         request=UserSerializer,
+#         responses={
+#             201: UserSerializer
+#         },  # Expected response will be the created category
+#         tags=["accounts"],
+#     )
+#     def create(self, request):
+#         try:
+#             user = request.user
+#             if user.is_anonymous:
+#                 return Response(
+#                     {"error": "User not authenticated"},
+#                     status=status.HTTP_401_UNAUTHORIZED,
+#                 )
+#             serializer = UserSerializer(user)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except ObjectDoesNotExist:
+#             return Response(
+#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUserImage(APIView):

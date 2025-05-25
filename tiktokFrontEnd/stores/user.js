@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
 import { useGeneralStore } from './general'
+import { useLoggedInUser } from '../composables/loggedinuser'
+
+const getLoggedIntUser = useLoggedInUser()
 
 const $axios = axios().provide.axios
 
@@ -34,13 +37,15 @@ export const useUserStore = defineStore('user', {
     },
 
     async getUser() {
+      // i made this one 
+      getLoggedIntUser 
       // let res = await $axios.get('/api/logged-in-user')
-      let res = await $axios.get('/api/loggedinuser/')
+      // let res = await $axios.get('/api/loggedinuser/')
 
-      this.$state.id = res.data[0].id
-      this.$state.username = res.data[0].username
-      this.$state.bio = res.data[0].bio
-      this.$state.image = res.data[0].image
+      // this.$state.id = res.data[0].id
+      // this.$state.username = res.data[0].username
+      // this.$state.bio = res.data[0].bio
+      // this.$state.image = res.data[0].image
     },
 
     async updateUserImage(data) {
