@@ -52,7 +52,9 @@
                                 <Icon name="bx:bxs-message-rounded-dots" size="25" />
                             </div>
                             <!-- <span class="text-xs text-gray-800 font-semibold">43</span> -->
-                             <span class="text-xs text-gray-800 font-semibold">{{ post.comment }} ---< Comment </span>
+                            <span class="text-xs text-gray-800 font-semibold">
+                                {{ post.comments?.length || post.comment || 0 }}
+                            </span>
                         </div>
 
                         <div class="text-center">
@@ -76,21 +78,6 @@ const { post } = toRefs(props)
 const router = useRouter()
 
 let video = ref(null)
-
-// onMounted(() => {
-//     let observer = new IntersectionObserver(function (entries) {
-//         if (entries[0].isIntersecting) {
-//             console.log('Element is playing' + post.value.id);
-//             video.value.play()
-//         } else {
-//             console.log('Element is paused' + post.value.id);
-//             video.value.pause()
-//         }
-
-//     }, { threshold: [0.6] });
-
-//     observer.observe(document.getElementById(`PostMain-${post.value.id}`));
-// })
 
 onMounted(() => {
     let observer = new IntersectionObserver(function (entries) {
