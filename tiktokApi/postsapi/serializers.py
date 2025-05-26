@@ -18,6 +18,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ["id", "text", "video", "created_at", "comments", "likes", "user"]
+        depth = 2
         # fields = ["id", "text", "video", "created_at","likes", "user"]
 
     # def get_user(self, obj):

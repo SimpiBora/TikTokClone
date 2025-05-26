@@ -15,6 +15,7 @@ from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from postsapi.models import Post
 
 from .serializers import (
     LoginSerializer,
@@ -205,38 +206,6 @@ class LoggedInUserViewSet(ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# class LoggedInUserViewSet(ViewSet):
-#     #     """
-#     #     API to get details of the logged-in user.
-#     #     """
-#     authentication_classes = [IsAuthenticated]
-
-#     @extend_schema(
-#         # This links the serializer for the request body
-#         request=UserSerializer,
-#         responses={
-#             201: UserSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def create(self, request):
-#         try:
-#             user = request.user
-#             if user.is_anonymous:
-#                 return Response(
-#                     {"error": "User not authenticated"},
-#                     status=status.HTTP_401_UNAUTHORIZED,
-#                 )
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except ObjectDoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class UpdateUserImage(APIView):
     """
     API to update user image with validation and cropping dimensions.
@@ -388,35 +357,73 @@ class PostDeleteView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfileView(APIView):
+class ProfileViewSet(ViewSet):
     """
     API to display the user's posts and profile information.
     """
 
-    def get(self, request, id):
+    @extend_schema(
+        request=PostSerializer  # This links the serializer for the request body
+        and
+        # responses={200: PostSerializer},  # Expected response will be the created category
+        UserSerializer,  # This links the serializer for the request body
+        responses={200: UserSerializer},
+        tags=["accounts"],
+    )
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a user's profile and their posts.
+        """
         try:
-            # Fetch posts by the specified user
-            posts = Post.objects.filter(user_id=id).order_by("-created_at")
-            # Fetch the user information
-            user = User.objects.get(id=id)
+            user = get_object_or_404(User, pk=pk)
+            posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            # post_serializer = PostSerializer(posts, many=True)
             post_serializer = PostSerializer(
                 posts, many=True, context={"request": request}
             )
             user_serializer = UserSerializer(user)
 
             return Response(
-                {"posts": post_serializer.data, "user": user_serializer.data},
+                {
+                    "posts": post_serializer.data,
+                    "user": user_serializer.data,
+                },
                 status=status.HTTP_200_OK,
-            )
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class ProfileView(APIView):
+#     """
+#     API to display the user's posts and profile information.
+#     """
+
+#     def get(self, request, id):
+#         try:
+#             # Fetch posts by the specified user
+#             posts = Post.objects.filter(user_id=id).order_by("-created_at")
+#             # Fetch the user information
+#             user = User.objects.get(id=id)
+
+#             # Serialize the data
+#             # post_serializer = PostSerializer(posts, many=True)
+#             post_serializer = PostSerializer(
+#                 posts, many=True, context={"request": request}
+#             )
+#             user_serializer = UserSerializer(user)
+
+#             return Response(
+#                 {"posts": post_serializer.data, "user": user_serializer.data},
+#                 status=status.HTTP_200_OK,
+#             )
+#         except User.DoesNotExist:
+#             return Response(
+#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetRandomUsersViewSet(ViewSet):
