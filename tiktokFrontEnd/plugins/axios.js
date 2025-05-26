@@ -6,7 +6,7 @@ export default defineNuxtPlugin((NuxtApp) => {
     axios.defaults.baseURL = 'http://localhost:8000'
 
     return {
-        provide: { 
+        provide: {
             axios: axios
         },
     }

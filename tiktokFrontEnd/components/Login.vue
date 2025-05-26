@@ -118,7 +118,6 @@ const login = async () => {
         await $userStore.getTokens()
         await $userStore.login(email.value, password.value)
         // await $userStore.getUser() // if needed
-        const userId = $userStore.user.id
 
         await $profileStore.getProfile(userId)
         await $generalStore.getRandomUsers('suggested')
