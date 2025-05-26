@@ -38,7 +38,7 @@ export const useUserStore = defineStore('user', {
 
     async getUser() {
       // i made this one 
-      getLoggedIntUser 
+      getLoggedIntUser
       // let res = await $axios.get('/api/logged-in-user')
       // let res = await $axios.get('/api/loggedinuser/')
 
