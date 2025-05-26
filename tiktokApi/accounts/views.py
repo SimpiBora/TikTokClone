@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -14,8 +14,12 @@ from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
+<<<<<<< HEAD
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
+=======
+from rest_framework.permissions import IsAuthenticated
+>>>>>>> features/accounts
 
 from .serializers import (
     LoginSerializer,
@@ -117,9 +121,14 @@ class RegisterUserViewSet(ViewSet):
 
 class LoginViewSet(ViewSet):
     # permission_classes = [AllowAny]  # Allow unauthenticated users to access
+<<<<<<< HEAD
     # # throttle_classes = [UserRateThrottle]
     authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
+=======
+    authentication_classes = []  # Disable authentication for this route
+    # throttle_classes = [UserRateThrottle]
+>>>>>>> features/accounts
 
     @extend_schema(
         # This links the serializer for the request body
@@ -158,7 +167,7 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 3:
+        if attempts >= 10:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
