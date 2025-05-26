@@ -116,8 +116,10 @@ class RegisterUserViewSet(ViewSet):
 
 
 class LoginViewSet(ViewSet):
-    permission_classes = [AllowAny]  # Allow unauthenticated users to access
-    # throttle_classes = [UserRateThrottle]
+    # permission_classes = [AllowAny]  # Allow unauthenticated users to access
+    # # throttle_classes = [UserRateThrottle]
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -358,6 +360,8 @@ class PostDeleteView(APIView):
 
 
 class ProfileViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
     """
@@ -393,37 +397,6 @@ class ProfileViewSet(ViewSet):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class ProfileView(APIView):
-#     """
-#     API to display the user's posts and profile information.
-#     """
-
-#     def get(self, request, id):
-#         try:
-#             # Fetch posts by the specified user
-#             posts = Post.objects.filter(user_id=id).order_by("-created_at")
-#             # Fetch the user information
-#             user = User.objects.get(id=id)
-
-#             # Serialize the data
-#             # post_serializer = PostSerializer(posts, many=True)
-#             post_serializer = PostSerializer(
-#                 posts, many=True, context={"request": request}
-#             )
-#             user_serializer = UserSerializer(user)
-
-#             return Response(
-#                 {"posts": post_serializer.data, "user": user_serializer.data},
-#                 status=status.HTTP_200_OK,
-#             )
-#         except User.DoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetRandomUsersViewSet(ViewSet):

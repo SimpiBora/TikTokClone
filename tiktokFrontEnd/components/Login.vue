@@ -119,7 +119,7 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         // await $userStore.getUser() // if needed
 
-        await $profileStore.getProfile(userId)
+        // await $profileStore.getProfile(userId)
         await $generalStore.getRandomUsers('suggested')
         await $generalStore.getRandomUsers('following')
 
