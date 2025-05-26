@@ -14,12 +14,8 @@ from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
-<<<<<<< HEAD
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
-=======
-from rest_framework.permissions import IsAuthenticated
->>>>>>> features/accounts
 
 from .serializers import (
     LoginSerializer,
@@ -121,14 +117,8 @@ class RegisterUserViewSet(ViewSet):
 
 class LoginViewSet(ViewSet):
     # permission_classes = [AllowAny]  # Allow unauthenticated users to access
-<<<<<<< HEAD
-    # # throttle_classes = [UserRateThrottle]
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
-=======
     authentication_classes = []  # Disable authentication for this route
     # throttle_classes = [UserRateThrottle]
->>>>>>> features/accounts
 
     @extend_schema(
         # This links the serializer for the request body

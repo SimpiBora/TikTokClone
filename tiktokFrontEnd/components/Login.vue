@@ -138,21 +138,61 @@ const errors = ref(null)
 const isPasswordVisible = ref(false)
 
 const login = async () => {
+    console.log('💡 Starting login flow')
     errors.value = null
 
     try {
-        await $userStore.getTokens()
-        await $userStore.login(email.value, password.value)
-        // await $userStore.getUser() // if needed
+        console.log('🔄 1) Fetching CSRF token...')
+        const tokenRes = await $userStore.getTokens()
+        console.log('✅ CSRF token fetched:', tokenRes)
 
-        // await $profileStore.getProfile(userId)
-        await $generalStore.getRandomUsers('suggested')
-        await $generalStore.getRandomUsers('following')
+        console.log('🔄 2) Logging in with', { email: email.value, password: '••••••' })
+        const loginRes = await $userStore.login(email.value, password.value)
+        console.log('✅ Login response:', loginRes)
 
+        // console.log('🔄 3) Fetching initial profile (no ID passed)...')
+        // const initialProfile = await $profileStore.getProfile()
+        // console.log('✅ Initial profile result:', initialProfile)
+
+        console.log('🔄 Resetting profile state and setting loading flag')
+        $profileStore.profile = null
+        $profileStore.isProfileLoading = true
+
+        console.log('🔄 4) Fetching profile for user ID=1 (hardcoded)')
+        // error is her 
+        // This should be replaced with the actual user ID after login
+        await $userStore.getUser() // Ensure user data is fetched first
+        console.log('🔄 Fetching profile for user ID=1')
+        await $profileStore.getProfile(1) // Assuming user ID 1 for testing
+        console.log('✅ Profile data fetched successfully')
+        // const profile1 = await $profileStore.getProfile(1)
+        // console.log('✅ Profile data for ID=1:', profile1)
+
+        console.log('🔄 5) Fetching suggested users')
+        const suggested = await $generalStore.getRandomUsers('suggested')
+        console.log('✅ Suggested users:', suggested)
+
+        console.log('🔄 6) Fetching following users')
+        const following = await $generalStore.getRandomUsers('following')
+        console.log('✅ Following users:', following)
+
+        console.log('🔄 7) Closing login modal')
         $generalStore.isLoginOpen = false
-    } catch (error) {
+
+        console.log('🎉 Login flow completed successfully')
+        // ✅ REDIRECT TO PROFILE PAGE
+        const router = useRouter()
+        // router.push(`/api/profile/${$profileStore.id}`)
+        // i wanna do redirect with nuxt3 redirect wiht name view
+        router.push({ name: 'profile-id', params: { id: $profileStore.id } }) // Redirect to profile with actual ID
+        // router.push({ name: 'profile-id', params: { id: 1 } }) // Redirect to profile with hardcoded ID for now
+        console.log('🔄 Redirecting to profile page', $profileStore.id)
+    }
+    catch (error) {
+        console.error('❌ Error during login flow:', error)
         errors.value = error.response?.data?.errors || { general: ['Login failed'] }
     }
 }
+
 
 </script>
