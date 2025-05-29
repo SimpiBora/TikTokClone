@@ -1,13 +1,16 @@
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
 import { useGeneralStore } from './general'
+import { useLoggedInUser } from '../composables/loggedinuser'
+
+const getLoggedIntUser = useLoggedInUser()
 
 const $axios = axios().provide.axios
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     id: '',
-    name: '',
+    username: '',
     bio: '',
     image: ''
   }),
@@ -24,9 +27,9 @@ export const useUserStore = defineStore('user', {
       })
     },
 
-    async register(name, email, password, confirmPassword) {
+    async register(username, email, password, confirmPassword) {
       await $axios.post('/api/registeruser/', {
-        name: name,
+        username: username,
         email: email,
         password: password,
         password_confirmation: confirmPassword
@@ -34,22 +37,24 @@ export const useUserStore = defineStore('user', {
     },
 
     async getUser() {
-      let res = await $axios.get('/api/logged-in-user')
+      // i made this one 
+      getLoggedIntUser
+      // let res = await $axios.get('/api/logged-in-user')
       // let res = await $axios.get('/api/loggedinuser/')
 
-      this.$state.id = res.data[0].id
-      this.$state.name = res.data[0].name
-      this.$state.bio = res.data[0].bio
-      this.$state.image = res.data[0].image
+      // this.$state.id = res.data[0].id
+      // this.$state.username = res.data[0].username
+      // this.$state.bio = res.data[0].bio
+      // this.$state.image = res.data[0].image
     },
 
     async updateUserImage(data) {
       return await $axios.post('/api/update-user-image', data)
     },
 
-    async updateUser(name, bio) {
+    async updateUser(username, bio) {
       return await $axios.patch('/api/update-user', {
-        name: name,
+        username: username,
         bio: bio
       })
     },
@@ -142,7 +147,7 @@ export const useUserStore = defineStore('user', {
 
     resetUser() {
       this.$state.id = ''
-      this.$state.name = ''
+      this.$state.username = ''
       this.$state.email = ''
       this.$state.bio = ''
       this.$state.image = ''

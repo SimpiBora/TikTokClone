@@ -39,15 +39,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # internal apps
-    'core',
-    'postsapi',
+    "core",
+    "postsapi",
     # "api",
-    'accounts',
+    "accounts",
     "like",
     "comments",
     "search",
     # third party apps
     "drf_spectacular",
+    
     # external apps
     "rest_framework",
     "rest_framework.authtoken",
@@ -159,7 +160,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # AUTH_USER_MODEL = "api.User"  # 'api' should be the name of your app
-AUTH_USER_MODEL = 'accounts.User' # "accounts.User"  # 'accounts' should be the name of your app
+AUTH_USER_MODEL = (
+    "accounts.User"  # "accounts.User"  # 'accounts' should be the name of your app
+)
 
 
 CORS_ALLOWED_ORIGINS = [

@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -15,6 +15,7 @@ from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from postsapi.models import Post
 
 from .serializers import (
     LoginSerializer,
@@ -69,7 +70,7 @@ class CSRFTokenViewSet(ViewSet):
 
 
 class RegisterUserViewSet(ViewSet):
-    # authentication_classes = []  # Disable authentication for this route
+    authentication_classes = []  # Disable authentication for this route
     permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
@@ -86,16 +87,26 @@ class RegisterUserViewSet(ViewSet):
 
         """
         serializer = UserRegistrationSerializer(data=request.data)
+        print("serializer ---->", serializer)
+        print("request.data ---->", request.data)
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             try:
                 # Create the user
                 user = serializer.save()
+                print("user ---->", user)
 
                 # Optionally create a token
                 token = Token.objects.create(user=user)
+                print("token ---->", token)
+                # send email verification
 
-                return Response({"token": token.key}, status=status.HTTP_201_CREATED)
+                return Response(
+                    {
+                        "token": token.key,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
             except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
@@ -104,32 +115,9 @@ class RegisterUserViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-"""
-# class RegisterUserView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         serializer = UserRegistrationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             try:
-#                 # Create the user
-#                 user = serializer.save()
-
-#                 # Optionally create a token
-#                 token = Token.objects.create(user=user)
-
-#                 return Response({"token": token.key}, status=status.HTTP_201_CREATED)
-#             except InterruptedError as e:
-#                 return Response(
-#                     {"error": "A user with this email or username already exists."},
-#                     status=status.HTTP_400_BAD_REQUEST,
-#                 )
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-"""
-
-
 class LoginViewSet(ViewSet):
-    permission_classes = [AllowAny]  # Allow unauthenticated users to access
+    # permission_classes = [AllowAny]  # Allow unauthenticated users to access
+    authentication_classes = []  # Disable authentication for this route
     # throttle_classes = [UserRateThrottle]
 
     @extend_schema(
@@ -146,7 +134,9 @@ class LoginViewSet(ViewSet):
 
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            print("inside is_valid ------> ", serializer.is_valid)
             email = serializer.validated_data["email"]
+            print("email ------> ", serializer.is_valid)
             password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
@@ -167,7 +157,7 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 3:
+        if attempts >= 10:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
@@ -182,71 +172,39 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+from rest_framework.permissions import IsAuthenticated
+
+
 class LoggedInUserViewSet(ViewSet):
-    #     """
-    #     API to get details of the logged-in user.
-    #     """
-    authentication_classes = [IsAuthenticated]
+    """
+    API to get details of the logged-in user.
+    """
+
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        # This links the serializer for the request body
         request=UserSerializer,
-        responses={
-            201: UserSerializer
-        },  # Expected response will be the created category
+        responses={200: UserSerializer},
         tags=["accounts"],
     )
     def create(self, request):
-        try:
-            user = request.user
-            if user.is_anonymous:
-                return Response(
-                    {"error": "User not authenticated"},
-                    status=status.HTTP_401_UNAUTHORIZED,
-                )
-            serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
+        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
+        print(f"📨 [DEBUG] Request method: {request.method}")
+        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+
+        user = request.user
+        if user.is_anonymous:
+            print("⛔ [DEBUG] User is anonymous. Returning 401.")
             return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "User not authenticated"},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # try:
+        serializer = UserSerializer(user)
+        print("✅ [DEBUG] Serialized user data:", serializer.data)
 
-
-# class LoggedInUserAPIView(APIView):
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     permission_classes = [IsAuthenticated]
-
-#     @extend_schema(
-#         # This links the serializer for the request body
-#         request=UserSerializer,
-#         responses={
-#             201: UserSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def post(self, request):
-#         try:
-#             user = request.user
-#             if user.is_anonymous:
-#                 return Response(
-#                     {"error": "User not authenticated"},
-#                     status=status.HTTP_401_UNAUTHORIZED,
-#                 )
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except ObjectDoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UpdateUserImage(APIView):
@@ -400,77 +358,41 @@ class PostDeleteView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# working with it
-
-
-# class HomeViewSet(ViewSet):
-#     @extend_schema(
-#         request=PostSerializer,  # This links the serializer for the request body
-#         responses={
-#             201: PostSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def list(self, request):
-#         try:
-#             queryset = Post.objects.all()
-#             serializer = PostSerializer(
-#                 queryset, many=True, context={"request": request}
-#             )
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response(
-#                 {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
-#             )
-
-
-'''
-# class HomeView(APIView):
-#     permission_classes = [AllowAny]
-#     pagination_class = CustomCursorPagination
-#     # pagination_class = CustomPageNumberPagination
-
-#     """
-#     API to display all posts ordered by creation date.
-#     """
-
-#     def get(self, request):
-#         try:
-#             posts = Post.objects.all().order_by("-created_at")
-#             serializer = PostSerializer(
-#                 posts, many=True, context={"request": request})
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
-
-
-class ProfileView(APIView):
+class ProfileViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
     """
 
-    def get(self, request, id):
+    @extend_schema(
+        request=PostSerializer  # This links the serializer for the request body
+        and
+        # responses={200: PostSerializer},  # Expected response will be the created category
+        UserSerializer,  # This links the serializer for the request body
+        responses={200: UserSerializer},
+        tags=["accounts"],
+    )
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a user's profile and their posts.
+        """
         try:
-            # Fetch posts by the specified user
-            posts = Post.objects.filter(user_id=id).order_by("-created_at")
-            # Fetch the user information
-            user = User.objects.get(id=id)
+            user = get_object_or_404(User, pk=pk)
+            posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            # post_serializer = PostSerializer(posts, many=True)
             post_serializer = PostSerializer(
                 posts, many=True, context={"request": request}
             )
             user_serializer = UserSerializer(user)
 
             return Response(
-                {"posts": post_serializer.data, "user": user_serializer.data},
+                {
+                    "posts": post_serializer.data,
+                    "user": user_serializer.data,
+                },
                 status=status.HTTP_200_OK,
-            )
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -505,38 +427,6 @@ class GetRandomUsersViewSet(ViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-'''
-class GlobalViewSet(APIView):
-    permission_classes = [AllowAny]
-
-    """
-    API to get random suggested and followed users.
-    """
-
-    def get(self, request):
-        try:
-            # Fetch random users for suggestions (limit to 5)
-            suggested_users = User.objects.order_by("?")[:5]
-            # Fetch random users for following (limit to 10)
-            following_users = User.objects.order_by("?")[:10]
-
-            # Serialize the data
-            suggested_serializer = UserSerializer(suggested_users, many=True)
-            following_serializer = UserSerializer(following_users, many=True)
-
-            return Response(
-                {
-                    "suggested": suggested_serializer.data,
-                    "following": following_serializer.data,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-'''
 
 
 class SendVerificationEmail(APIView):
