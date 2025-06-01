@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -15,6 +15,7 @@ from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from postsapi.models import Post
 
 from .serializers import (
     LoginSerializer,
@@ -115,8 +116,8 @@ class RegisterUserViewSet(ViewSet):
 
 
 class LoginViewSet(ViewSet):
-    permission_classes = [AllowAny]  # Allow unauthenticated users to access
-    # throttle_classes = [UserRateThrottle]
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -155,7 +156,7 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 3:
+        if attempts >= 10:
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
@@ -174,11 +175,14 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class LoggedInUserViewSet(ViewSet):
+    
+
     """
     API to get details of the logged-in user.
     """
 
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         request=UserSerializer,
@@ -203,38 +207,6 @@ class LoggedInUserViewSet(ViewSet):
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# class LoggedInUserViewSet(ViewSet):
-#     #     """
-#     #     API to get details of the logged-in user.
-#     #     """
-#     authentication_classes = [IsAuthenticated]
-
-#     @extend_schema(
-#         # This links the serializer for the request body
-#         request=UserSerializer,
-#         responses={
-#             201: UserSerializer
-#         },  # Expected response will be the created category
-#         tags=["accounts"],
-#     )
-#     def create(self, request):
-#         try:
-#             user = request.user
-#             if user.is_anonymous:
-#                 return Response(
-#                     {"error": "User not authenticated"},
-#                     status=status.HTTP_401_UNAUTHORIZED,
-#                 )
-#             serializer = UserSerializer(user)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except ObjectDoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUserImage(APIView):
@@ -388,32 +360,40 @@ class PostDeleteView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfileView(APIView):
+class ProfileViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
     """
 
-    def get(self, request, id):
+    
+    @extend_schema(
+        responses={200: UserSerializer},
+        tags=["accounts"],
+        description="Retrieve a user's profile and their posts."
+    )
+    
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a user's profile and their posts.
+        """
         try:
-            # Fetch posts by the specified user
-            posts = Post.objects.filter(user_id=id).order_by("-created_at")
-            # Fetch the user information
-            user = User.objects.get(id=id)
+            user = get_object_or_404(User, pk=pk)
+            posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            # post_serializer = PostSerializer(posts, many=True)
             post_serializer = PostSerializer(
                 posts, many=True, context={"request": request}
             )
             user_serializer = UserSerializer(user)
 
             return Response(
-                {"posts": post_serializer.data, "user": user_serializer.data},
+                {
+                    "posts": post_serializer.data,
+                    "user": user_serializer.data,
+                },
                 status=status.HTTP_200_OK,
-            )
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
