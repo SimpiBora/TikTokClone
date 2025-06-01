@@ -13,13 +13,14 @@ class UserAdmin(BaseUserAdmin):
 
     # Fields to display in the list view
     list_display = (
+        "id",
         "email",
         "name",
         "username",
         "bio",
         "image",
         "is_staff",
-        "is_active",
+        "is_active"
     )
     list_filter = ("is_staff", "is_active")
 

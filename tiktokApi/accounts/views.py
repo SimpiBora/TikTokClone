@@ -116,9 +116,8 @@ class RegisterUserViewSet(ViewSet):
 
 
 class LoginViewSet(ViewSet):
-    # permission_classes = [AllowAny]  # Allow unauthenticated users to access
     authentication_classes = []  # Disable authentication for this route
-    # throttle_classes = [UserRateThrottle]
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -176,11 +175,14 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class LoggedInUserViewSet(ViewSet):
+    
+
     """
     API to get details of the logged-in user.
     """
 
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         request=UserSerializer,
@@ -365,14 +367,13 @@ class ProfileViewSet(ViewSet):
     API to display the user's posts and profile information.
     """
 
+    
     @extend_schema(
-        request=PostSerializer  # This links the serializer for the request body
-        and
-        # responses={200: PostSerializer},  # Expected response will be the created category
-        UserSerializer,  # This links the serializer for the request body
         responses={200: UserSerializer},
         tags=["accounts"],
+        description="Retrieve a user's profile and their posts."
     )
+    
     def retrieve(self, request, pk=None):
         """
         Retrieve a user's profile and their posts.
