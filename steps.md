@@ -24,3 +24,14 @@ Start Adding ---->
 
 
 **** All Posts Related Work Would in PostsApi Module  ****
+
+*** suggested user / Following user ***
+
+<!-- basdir/
+    components
+    plugins
+    pages
+    store
+    middleware
+    layouts
+    components -->

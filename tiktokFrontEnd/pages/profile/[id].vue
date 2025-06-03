@@ -74,7 +74,7 @@ onMounted(async () => {
         await $profileStore.getProfile(route.params.id)
         console.log('is id comming to profile or not --------> ', route.params.id);
     } catch (error) {
-         console.log('is id not comming to profile or not --------> ', route.params.id);
+        console.log('is id not comming to profile or not --------> ', route.params.id);
         console.log(error)
     }
 })
