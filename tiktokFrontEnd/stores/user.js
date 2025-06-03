@@ -36,27 +36,46 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
+  // async function getUser() {
+  //   try {
+  //     const res = await $axios.post('/api/loggedinuser/', {
+  //       method: 'POST',
+  //       credentials: 'include',
+  //       headers: {
+  //         'X-CSRFToken': useCookie('token').value || '',
+  //       },
+  //     })
+
+  //     id.value = res.data.id
+  //     username.value = res.data.username
+  //     bio.value = res.data.bio
+  //     image.value = res.data.image
+  //     email.value = res.data.email
+  //     console.log('returning ', res.data);
+  //     return res.data
+  //   } catch (err) {
+  //     console.error('❌ Failed to fetch user:', err)
+  //   }
+  // }
+
   async function getUser() {
     try {
-      const res = await $axios.post('/api/loggedinuser/', {
-        method: 'POST',
-        credentials: 'include',
+      const res = await $axios.post('/api/loggedinuser/', {}, {
+        withCredentials: true,
         headers: {
-          'X-CSRFToken': useCookie('token').value || '',
+          'X-CSRFToken': csrfToken,
         },
       })
 
-      id.value = res.data.id
-      username.value = res.data.username
-      bio.value = res.data.bio
-      image.value = res.data.image
-      email.value = res.data.email
-      console.log('returning ', res.data);
-      return res.data
+      console.log('🔁 Full response:', res)
+      console.log('📦 Returned data:', res.data)
+
     } catch (err) {
-      console.error('❌ Failed to fetch user:', err)
+      console.error('❌ Error fetching user:', err.response?.data || err.message)
     }
+
   }
+
 
   async function updateUserImage(data) {
     return await $axios.post('/api/update-user-image', data)

@@ -57,6 +57,9 @@ const errors = ref(null)
 const isPasswordVisible = ref(false)
 const router = useRouter()
 
+
+
+
 const login = async () => {
     errors.value = null
     try {
@@ -67,7 +70,7 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
-
+        // await $userStore.getUser()
         await $profileStore.getProfile(1)
 
         if (!$profileStore.id) {
@@ -78,7 +81,7 @@ const login = async () => {
             router.push({ name: 'profile-id', params: { id: $profileStore.id } })
         }
 
-        await $userStore.getUser()
+
 
 
         $generalStore.isLoginOpen = false

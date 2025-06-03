@@ -1,6 +1,8 @@
+
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
 import { ref } from 'vue'
+
 
 const $axios = axios().provide.axios
 
@@ -13,7 +15,9 @@ export const useProfileStore = defineStore('profile', () => {
   const posts = ref([])
   const allLikes = ref(0)
 
+
   async function getProfile(userId) {
+
     try {
       const res = await $axios.get(`/api/profile/${userId}/`)
       console.log('✅ Profile response:', res.data)
