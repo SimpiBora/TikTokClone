@@ -67,22 +67,19 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
-        console.log('userstore.getUser() called to fetch user data')
-        await $userStore.getUser();
 
-        const result = await $profileStore.getProfile(1)
-        console.log('✅ Profile data fetched:', result)
+        await $profileStore.getProfile(1)
 
         if (!$profileStore.id) {
             console.warn('⚠️ Profile ID not found, cannot redirect')
             return
+        } else {
+            console.log('🔄 Redirecting to profile page', $profileStore.id)
+            router.push({ name: 'profile-id', params: { id: $profileStore.id } })
         }
 
-        router.push({ name: 'profile-id', params: { id: $profileStore.id } })
-        console.log('🔄 Redirecting to profile page', $profileStore.id)
+        await $userStore.getUser()
 
-        await $generalStore.getRandomUsers('suggested and following')
-        console.log('🔄 Suggested users fetched')
 
         $generalStore.isLoginOpen = false
         console.log('🔄 Login modal closed')
@@ -94,31 +91,3 @@ const login = async () => {
 }
 
 </script>
-
-
-<!-- <script setup>
-const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-
-let email = ref(null)
-let password = ref(null)
-let errors = ref(null)
-
-const login = async () => {
-    errors.value = null
-
-    try {
-        await $userStore.getTokens()
-        await $userStore.login(email.value, password.value)
-
-        // await $userStore.getUser()
-        // made me 
-        $profileStore.getProfile(1)
-
-        await $generalStore.getRandomUsers('suggested')
-        await $generalStore.getRandomUsers('following')
-        $generalStore.isLoginOpen = false
-    } catch (error) {
-        errors.value = error.response.data.errors
-    }
-}
-</script> -->
