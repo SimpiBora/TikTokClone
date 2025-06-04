@@ -45,6 +45,133 @@
     </form>
 </template>
 
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { $userStore, $generalStore, $profileStore } = useNuxtApp()
+
+const email = ref('')
+const password = ref('')
+const errors = ref(null)
+const isPasswordVisible = ref(false)
+const router = useRouter()
+
+const login = async () => {
+    errors.value = null
+    try {
+        console.log('💡 Starting login flow')
+
+        await $userStore.getTokens()
+        console.log('✅ CSRF token fetched')
+
+        await $userStore.login(email.value, password.value)
+        console.log('✅ User logged in')
+
+        let userId = $userStore.id
+        console.log('userId: --- ', userId);
+        if (!userId) {
+            const userData = await $userStore.getUser()
+            // console.log('userData: --- ', userData);
+            // i want see full response from server 
+            console.log('userData: --- ', JSON.stringify(userData, null, 2));
+            console.log(
+                Object.entries(userData)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ')
+            )
+
+
+
+            // If userData is not available, we cannot proceed
+            if (!userData || !userData.user_data?.id) {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+            userId = userData.user_data.id
+
+        }
+
+        console.log('🧠 User ID:', userId)
+
+        const profileData = await $profileStore.getProfile(userId)
+        if (!profileData || !$profileStore.id) {
+            console.warn('⚠️ Profile not loaded, cannot redirect')
+            return
+        }
+
+        console.log('🔄 Redirecting to profile page:', $profileStore.id)
+        router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+
+        console.log('🔐 Login modal closed')
+        $generalStore.isLoginOpen = false
+
+    } catch (error) {
+        console.error('❌ Error during login flow:', error)
+        errors.value = error.response?.data?.errors || { general: ['Login failed'] }
+    }
+}
+</script>
+
+
+<!-- <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { $userStore, $generalStore, $profileStore } = useNuxtApp()
+
+const email = ref('')
+const password = ref('')
+const errors = ref(null)
+const isPasswordVisible = ref(false)
+const router = useRouter()
+
+const login = async () => {
+    errors.value = null
+    try {
+        console.log('💡 Starting login flow')
+
+        await $userStore.getTokens()
+        console.log('✅ CSRF token fetched')
+
+        await $userStore.login(email.value, password.value)
+        console.log('✅ User logged in')
+
+        let userId = $userStore.id
+        if (!userId) {
+            const userData = await $userStore.getUser()
+            if (!userData || !userData.id) {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+            userId = userData.id
+        }
+
+        console.log('🧠 User ID:', userId)
+
+        const profileData = await $profileStore.getProfile(userId)
+        if (!profileData || !$profileStore.id) {
+            console.warn('⚠️ Profile not loaded, cannot redirect')
+            return
+        }
+
+        console.log('🔄 Redirecting to profile page:', $profileStore.id)
+        router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+
+        console.log('🔐 Login modal closed')
+        $generalStore.isLoginOpen = false
+
+    } catch (error) {
+        console.error('❌ Error during login flow:', error)
+        errors.value = error.response?.data?.errors || { general: ['Login failed'] }
+    }
+}
+</script> -->
+
+
+
+<!-- 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -71,9 +198,22 @@ const login = async () => {
         console.log('✅ User logged in')
 
         // await $userStore.getUser()
-        await $profileStore.getProfile(1)
+        // await $profileStore.getProfile(1)
+        // let userId = $userStore.id
+        let { id: userId } = $userStore
 
-        if (!$profileStore.id) {
+    if (!userId) {
+            const success = await $userStore.getUser()
+            if (success) {
+                userId = $userStore.id
+            } else {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+        }
+
+
+        if (!userId) {
             console.warn('⚠️ Profile ID not found, cannot redirect')
             return
         } else {
@@ -81,11 +221,9 @@ const login = async () => {
             router.push({ name: 'profile-id', params: { id: $profileStore.id } })
         }
 
-
-
+        console.log('🔄 Login modal closed')
 
         $generalStore.isLoginOpen = false
-        console.log('🔄 Login modal closed')
 
     } catch (error) {
         console.error('❌ Error during login flow:', error)
@@ -93,4 +231,4 @@ const login = async () => {
     }
 }
 
-</script>
+</script> -->

@@ -58,7 +58,41 @@ export const useUserStore = defineStore('user', () => {
   //   }
   // }
 
+  // async function getUser() {
+  //   try {
+  //     const res = await $axios.post('/api/loggedinuser/', {}, {
+  //       withCredentials: true,
+  //       headers: {
+  //         'X-CSRFToken': csrfToken,
+  //       },
+  //     })
+
+  //     console.log('🔁 Full response:', res)
+  //     console.log('📦 Returned data:', res.data)
+
+  //   } catch (err) {
+  //     console.error('❌ Error fetching user:', err.response?.data || err.message)
+  //   }
+
+  // }
+
   async function getUser() {
+    // Get the CSRF token from the cookie
+    let csrfToken = useCookie('csrftoken').value
+
+    if (!csrfToken) {
+      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
+      const tokenResult = await $userStore.getTokens()  // Ensure you have this method implemented
+      csrfToken = useCookie('csrftoken').value
+
+      if (!csrfToken) {
+        console.error('❌ Still no CSRF token after trying to fetch')
+        return null
+      }
+    } else {
+      console.log('✅ CSRF token already available:', csrfToken)
+    }
+
     try {
       const res = await $axios.post('/api/loggedinuser/', {}, {
         withCredentials: true,
@@ -69,12 +103,14 @@ export const useUserStore = defineStore('user', () => {
 
       console.log('🔁 Full response:', res)
       console.log('📦 Returned data:', res.data)
+      return res.data
 
     } catch (err) {
       console.error('❌ Error fetching user:', err.response?.data || err.message)
+      return null
     }
-
   }
+
 
 
   async function updateUserImage(data) {
