@@ -9,8 +9,14 @@
                         {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
                     </div>
                     <div class="text-[18px] truncate">{{ $profileStore.name }}</div>
-                    <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
+                    <!-- <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
+                        <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
+                        <div>Edit profile</div>
+                    </button> -->
+                    <button v-if="$profileStore.id && $userStore.id && $profileStore.id === $userStore.id"
+                        @click="$generalStore.isEditProfileOpen = true"
+                        class="flex items-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
                         <div>Edit profile</div>
                     </button>
@@ -67,16 +73,22 @@ const { posts, allLikes } = storeToRefs($profileStore)
 const route = useRoute()
 let show = ref(false)
 
-definePageMeta({ middleware: 'auth' })
+
+// definePageMeta({ middleware: 'auth' })
 
 onMounted(async () => {
+
     try {
+        console.log('id is comming to profile or not --------> ', route.params.id);
         await $profileStore.getProfile(route.params.id)
-        console.log('is id comming to profile or not --------> ', route.params.id);
     } catch (error) {
-         console.log('is id not comming to profile or not --------> ', route.params.id);
+        console.log('is id not comming to profile or not --------> ', route.params.id);
         console.log(error)
     }
+
+    console.log('🧩 profile ID:', $profileStore.id)
+    console.log('🧩 user ID:', $userStore.id)
+
 })
 
 watch(() => posts.value, () => {

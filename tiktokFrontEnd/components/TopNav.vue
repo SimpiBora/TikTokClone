@@ -68,14 +68,31 @@ const router = useRouter()
 
 let showMenu = ref(false)
 
+// onMounted(() => {
+//     document.addEventListener('mouseup', function (e) {
+//         let popupMenu = document.getElementById('PopupMenu');
+//         if (!popupMenu.contains(e.target)) {
+//             showMenu.value = false
+//         }
+//     });
+// })
+
 onMounted(() => {
-    document.addEventListener('mouseup', function (e) {
-        let popupMenu = document.getElementById('PopupMenu');
-        if (!popupMenu.contains(e.target)) {
+    const handler = (e) => {
+        const popupMenu = document.getElementById('PopupMenu')
+        if (popupMenu && !popupMenu.contains(e.target)) {
             showMenu.value = false
         }
-    });
+    }
+
+    document.addEventListener('mouseup', handler)
+
+    onBeforeUnmount(() => {
+        document.removeEventListener('mouseup', handler)
+    })
 })
+
+
 
 const isLoggedIn = () => {
     if ($userStore.id) {

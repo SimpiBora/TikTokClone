@@ -1,83 +1,3 @@
-<!-- <template>
-    <div class="text-center text-[28px] mb-4 font-bold">Log in</div>
-
-    <div class="px-6 pb-1.5 text-[15px]">Email address</div>
-
-    <form @submit.prevent>
-        <div class="px-6 pb-2">
-            <TextInput placeholder="Email address" v-model:input="email" inputType="email" :autoFocus="true"
-                :error="errors && errors.email ? errors.email[0] : ''" />
-        </div>
-    <div class="px-6 pb-2">
-        <TextInput placeholder="Email address" v-model:input="email" inputType="email" :autoFocus="true"
-            :error="errors && errors.email ? errors.email[0] : ''" />
-    </div>
-
-        <div class="px-6 pb-2">
-            <TextInput placeholder="Password" v-model:input="password" inputType="password" />
-        </div>
-        <div class="px-6 text-[12px] text-gray-600">Forgot password?</div>
-    <div class="px-6 pb-2">
-        <TextInput placeholder="Password" v-model:input="password" inputType="password" />
-    </div>
-    <div class="px-6 text-[12px] text-gray-600">Forgot password?</div>
-
-        <div class="px-6 pb-2 mt-6">
-            <button :disabled="(!email || !password)" :class="(!email || !password) ? 'bg-gray-200' : 'bg-[#F02C56]'"
-                @click="login()" class="w-full text-[17px] font-semibold text-white py-3 rounded-sm">
-                Log in
-            </button>
-        </div>
-    </form>
-
-    <div class="px-6 pb-2 mt-6">
-        <button :disabled="(!email || !password)" :class="(!email || !password) ? 'bg-gray-200' : 'bg-[#F02C56]'"
-            @click="login()" class="w-full text-[17px] font-semibold text-white py-3 rounded-sm">
-            Log in
-        </button>
-    </div>
-</template>
-
-<script setup>
-const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-
-import axios from '../plugins/axios'
-const $axios = axios().provide.axios
-const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-
-let email = ref(null)
-let password = ref(null)
-let errors = ref(null)
-
-
-
-const login = async () => {
-    errors.value = null
-
-    try {
-        await $userStore.getTokens()
-        await $userStore.login(email.value, password.value)
-        // await $userStore.getUser()
-        await $profileStore.getProfile()
-
-        // redirect me to profile page
-        // $router.push(`/api/profile/${userid}`)
-        $profileStore.profile = null // reset profile
-        $profileStore.isProfileLoading = true
-        await $profileStore.getProfile(1)
-
-
-        await $userStore.getUser()
-        await $generalStore.getRandomUsers('suggested')
-        await $generalStore.getRandomUsers('following')
-        $generalStore.isLoginOpen = false
-    } catch (error) {
-        errors.value = error.response.data.errors
-    }
-}
-</script> -->
-
-
 <template>
     <div class="text-center text-[28px] mb-4 font-bold">Log in</div>
 
@@ -125,6 +45,7 @@ const login = async () => {
     </form>
 </template>
 
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -141,28 +62,168 @@ const login = async () => {
     errors.value = null
     try {
         console.log('💡 Starting login flow')
+
         await $userStore.getTokens()
         console.log('✅ CSRF token fetched')
 
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
-        const result = await $profileStore.getProfile(1)
-        console.log('✅ Profile data fetched:', result)
+        let userId = $userStore.id
+        console.log('userId: --- ', userId);
+        if (!userId) {
+            const userData = await $userStore.getUser()
+            // console.log('userData: --- ', userData);
+            // i want see full response from server 
+            console.log('userData: --- ', JSON.stringify(userData, null, 2));
+            console.log(
+                Object.entries(userData)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ')
+            )
 
-        if (!$profileStore.id) {
-            console.warn('⚠️ Profile ID not found, cannot redirect')
+
+
+            // If userData is not available, we cannot proceed
+            if (!userData || !userData.user_data?.id) {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+            userId = userData.user_data.id
+
+        }
+
+        console.log('🧠 User ID:', userId)
+
+        const profileData = await $profileStore.getProfile(userId)
+        if (!profileData || !$profileStore.id) {
+            console.warn('⚠️ Profile not loaded, cannot redirect')
             return
         }
 
+        console.log('🔄 Redirecting to profile page:', $profileStore.id)
         router.push({ name: 'profile-id', params: { id: $profileStore.id } })
-        console.log('🔄 Redirecting to profile page', $profileStore.id)
 
-        await $generalStore.getRandomUsers('suggested and following')
-        console.log('🔄 Suggested users fetched')
+        console.log('🔐 Login modal closed')
+        $generalStore.isLoginOpen = false
+
+    } catch (error) {
+        console.error('❌ Error during login flow:', error)
+        errors.value = error.response?.data?.errors || { general: ['Login failed'] }
+    }
+}
+</script>
+
+
+<!-- <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { $userStore, $generalStore, $profileStore } = useNuxtApp()
+
+const email = ref('')
+const password = ref('')
+const errors = ref(null)
+const isPasswordVisible = ref(false)
+const router = useRouter()
+
+const login = async () => {
+    errors.value = null
+    try {
+        console.log('💡 Starting login flow')
+
+        await $userStore.getTokens()
+        console.log('✅ CSRF token fetched')
+
+        await $userStore.login(email.value, password.value)
+        console.log('✅ User logged in')
+
+        let userId = $userStore.id
+        if (!userId) {
+            const userData = await $userStore.getUser()
+            if (!userData || !userData.id) {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+            userId = userData.id
+        }
+
+        console.log('🧠 User ID:', userId)
+
+        const profileData = await $profileStore.getProfile(userId)
+        if (!profileData || !$profileStore.id) {
+            console.warn('⚠️ Profile not loaded, cannot redirect')
+            return
+        }
+
+        console.log('🔄 Redirecting to profile page:', $profileStore.id)
+        router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+
+        console.log('🔐 Login modal closed')
+        $generalStore.isLoginOpen = false
+
+    } catch (error) {
+        console.error('❌ Error during login flow:', error)
+        errors.value = error.response?.data?.errors || { general: ['Login failed'] }
+    }
+}
+</script> -->
+
+
+
+<!-- 
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { $userStore, $generalStore, $profileStore } = useNuxtApp()
+
+const email = ref('')
+const password = ref('')
+const errors = ref(null)
+const isPasswordVisible = ref(false)
+const router = useRouter()
+
+
+
+
+const login = async () => {
+    errors.value = null
+    try {
+        console.log('💡 Starting login flow')
+        await $userStore.getTokens()
+        console.log('✅ CSRF token fetched')
+
+        await $userStore.login(email.value, password.value)
+        console.log('✅ User logged in')
+
+        // await $userStore.getUser()
+        // await $profileStore.getProfile(1)
+        // let userId = $userStore.id
+        let { id: userId } = $userStore
+
+    if (!userId) {
+            const success = await $userStore.getUser()
+            if (success) {
+                userId = $userStore.id
+            } else {
+                console.warn('🔒 User not authenticated')
+                return
+            }
+        }
+
+
+        if (!userId) {
+            console.warn('⚠️ Profile ID not found, cannot redirect')
+            return
+        } else {
+            console.log('🔄 Redirecting to profile page', $profileStore.id)
+            router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+        }
+
+        console.log('🔄 Login modal closed')
 
         $generalStore.isLoginOpen = false
-        console.log('🔄 Login modal closed')
 
     } catch (error) {
         console.error('❌ Error during login flow:', error)
@@ -170,32 +231,4 @@ const login = async () => {
     }
 }
 
-</script>
-
-
-<!-- <script setup>
-const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-
-let email = ref(null)
-let password = ref(null)
-let errors = ref(null)
-
-const login = async () => {
-    errors.value = null
-
-    try {
-        await $userStore.getTokens()
-        await $userStore.login(email.value, password.value)
-
-        // await $userStore.getUser()
-        // made me 
-        $profileStore.getProfile(1)
-
-        await $generalStore.getRandomUsers('suggested')
-        await $generalStore.getRandomUsers('following')
-        $generalStore.isLoginOpen = false
-    } catch (error) {
-        errors.value = error.response.data.errors
-    }
-}
 </script> -->

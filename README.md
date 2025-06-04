@@ -2,7 +2,7 @@ need to merge ( features/accounts with features/profile )
   git checkout features/accounts  
     git merge features/profile
 
-## 1. vn venv
+## 1. uv venv
 
 ## 2. install all requirements.txt data
 uv pip install -r requirements.txt 
