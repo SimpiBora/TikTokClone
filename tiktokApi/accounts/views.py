@@ -10,6 +10,7 @@ from django.middleware.csrf import get_token
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from requests import session
 from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
@@ -66,7 +67,11 @@ class CSRFTokenViewSet(ViewSet):
         response = JsonResponse({"detail": "CSRF cookie set"})
         # Optional: Include token in response header
         response["X-CSRFToken"] = csrf_token
-        return response
+        # return response
+        return Response(
+            {"detail": "CSRF cookie set", "csrfToken": csrf_token},
+            status=status.HTTP_200_OK,
+        )
 
 
 class RegisterUserViewSet(ViewSet):
@@ -116,9 +121,8 @@ class RegisterUserViewSet(ViewSet):
 
 
 class LoginViewSet(ViewSet):
-    # permission_classes = [AllowAny]  # Allow unauthenticated users to access
     authentication_classes = []  # Disable authentication for this route
-    # throttle_classes = [UserRateThrottle]
+    permission_classes = []  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -164,15 +168,18 @@ class LoginViewSet(ViewSet):
         return False
 
 
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        request.user.auth_token.delete()  # Delete the token to log out
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 from rest_framework.permissions import IsAuthenticated
+
+
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ViewSet
+from rest_framework.schemas.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema
+from django.middleware.csrf import get_token
+from .serializers import UserSerializer
 
 
 class LoggedInUserViewSet(ViewSet):
@@ -180,31 +187,94 @@ class LoggedInUserViewSet(ViewSet):
     API to get details of the logged-in user.
     """
 
+    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request=UserSerializer,
+        request=None,
         responses={200: UserSerializer},
         tags=["accounts"],
     )
     def create(self, request):
         print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
-        print(f"📨 [DEBUG] Request method: {request.method}")
+
+        # Authentication Info
         print(f"🔐 [DEBUG] Authenticated user: {request.user}")
         print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
 
-        user = request.user
-        if user.is_anonymous:
-            print("⛔ [DEBUG] User is anonymous. Returning 401.")
-            return Response(
-                {"error": "User not authenticated"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+        # Headers
+        print("📦 [DEBUG] Request Headers:")
+        for key, value in request.headers.items():
+            print(f"   {key}: {value}")
 
-        serializer = UserSerializer(user)
+        # Cookies
+        print("🍪 [DEBUG] Request Cookies:")
+        for key, value in request.COOKIES.items():
+            print(f"   {key}: {value}")
+
+        # Session
+        print("📘 [DEBUG] Session Keys:")
+        for key in request.session.keys():
+            print(f"   {key}: {request.session.get(key)}")
+
+        # Serialize and prepare response
+        serializer = UserSerializer(request.user)
+        csrf_token = get_token(request)
+        session_id = request.session.session_key
+
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = Response(
+            {
+                "debug": "No errors, user fetched",
+                "user_data": serializer.data,
+                "csrf_token": csrf_token,
+                "sessionid": session_id,
+            },
+            status=HTTP_200_OK,
+        )
+
+        # Optionally also return CSRF token in headers (for frontend convenience)
+        response.headers["X-CSRFToken"] = csrf_token
+
+        return response
+
+
+# class LogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         request.user.auth_token.delete()  # Delete the token to log out
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+from rest_framework.viewsets import ViewSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from django.contrib.auth import logout
+
+
+class LogoutViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        tags=["accounts"],
+    )
+    def create(self, request):
+        print("🔍 [DEBUG] Incoming request to LogoutViewSet.create")
+        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+
+        # Log out the user by flushing the session
+        logout(request)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UpdateUserImage(APIView):
@@ -366,12 +436,9 @@ class ProfileViewSet(ViewSet):
     """
 
     @extend_schema(
-        request=PostSerializer  # This links the serializer for the request body
-        and
-        # responses={200: PostSerializer},  # Expected response will be the created category
-        UserSerializer,  # This links the serializer for the request body
         responses={200: UserSerializer},
         tags=["accounts"],
+        description="Retrieve a user's profile and their posts.",
     )
     def retrieve(self, request, pk=None):
         """

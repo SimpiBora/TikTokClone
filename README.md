@@ -1,4 +1,8 @@
-## 1. vn venv
+need to merge ( features/accounts with features/profile ) 
+  git checkout features/accounts  
+    git merge features/profile
+
+## 1. uv venv
 
 ## 2. install all requirements.txt data
 uv pip install -r requirements.txt 
