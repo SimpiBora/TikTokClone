@@ -168,51 +168,8 @@ class LoginViewSet(ViewSet):
         return False
 
 
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        request.user.auth_token.delete()  # Delete the token to log out
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 from rest_framework.permissions import IsAuthenticated
 
-
-# class LoggedInUserViewSet(ViewSet):
-
-
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     authentication_classes = []  # Disable authentication for this route
-#   permission_classes = [IsAuthenticated]  # Disable permissions for this route
-
-
-# @extend_schema(
-#         request=UserSerializer,
-#         responses={200: UserSerializer},
-#         tags=["accounts"],
-#     )
-#     def create(self, request):
-#         print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
-#         print(f"📨 [DEBUG] Request method: {request.method}")
-#         print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-#         print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
-
-#         user = request.user
-#         if user.is_anonymous:
-#             print("⛔ [DEBUG] User is anonymous. Returning 401.")
-#             return Response(
-#                 {"error": "User not authenticated"},
-#                 status=status.HTTP_401_UNAUTHORIZED,
-#             )
-
-#         serializer = UserSerializer(user)
-#         print("✅ [DEBUG] Serialized user data:", serializer.data)
-
-#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
@@ -281,6 +238,43 @@ class LoggedInUserViewSet(ViewSet):
         response.headers["X-CSRFToken"] = csrf_token
 
         return response
+
+
+# class LogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         request.user.auth_token.delete()  # Delete the token to log out
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+from rest_framework.viewsets import ViewSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from django.contrib.auth import logout
+
+
+class LogoutViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        tags=["accounts"],
+    )
+    def create(self, request):
+        print("🔍 [DEBUG] Incoming request to LogoutViewSet.create")
+        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+
+        # Log out the user by flushing the session
+        logout(request)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UpdateUserImage(APIView):
