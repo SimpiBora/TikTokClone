@@ -3,23 +3,23 @@
         <div v-if="$profileStore.name"
             class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
             <div class="flex w-[calc(100vw-230px)]">
-                <img class="max-w-[120px] rounded-full" :src="$profileStore.image">
+                <img class="max-w-[120px] rounded-full" :src="$profileStore.image"> Img ---
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
+                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} Name ---
                     </div>
                     <div class="text-[18px] truncate">{{ $profileStore.name }}</div>
-                    <!-- <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
+                    <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
                         <div>Edit profile</div>
-                    </button> -->
-                    <button v-if="$profileStore.id && $userStore.id && $profileStore.id === $userStore.id"
+                    </button>
+                    <!-- <button v-if="$profileStore.id && $userStore.id && $profileStore.id === $userStore.id"
                         @click="$generalStore.isEditProfileOpen = true"
                         class="flex items-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
                         <div>Edit profile</div>
-                    </button>
+                    </button> -->
 
                     <button v-else
                         class="flex item-center rounded-md py-1.5 px-8 mt-3 text-[15px] text-white font-semibold bg-[#F02C56]">
@@ -69,12 +69,14 @@ import MainLayout from '~/layouts/MainLayout.vue';
 import { storeToRefs } from 'pinia';
 const { $userStore, $profileStore, $generalStore } = useNuxtApp()
 const { posts, allLikes } = storeToRefs($profileStore)
+const { id: userId } = storeToRefs($userStore)
+
 
 const route = useRoute()
 let show = ref(false)
 
 
-// definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth' })
 
 onMounted(async () => {
 
@@ -87,7 +89,7 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
-    console.log('🧩 user ID:', $userStore.id)
+    console.log('🧩 user ID:', userId)
 
 })
 

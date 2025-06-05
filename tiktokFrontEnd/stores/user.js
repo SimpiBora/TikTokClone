@@ -36,29 +36,24 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
-  // async function getUser() {
-  //   try {
-  //     const res = await $axios.post('/api/loggedinuser/', {
-  //       method: 'POST',
-  //       credentials: 'include',
-  //       headers: {
-  //         'X-CSRFToken': useCookie('token').value || '',
-  //       },
-  //     })
 
-  //     id.value = res.data.id
-  //     username.value = res.data.username
-  //     bio.value = res.data.bio
-  //     image.value = res.data.image
-  //     email.value = res.data.email
-  //     console.log('returning ', res.data);
-  //     return res.data
-  //   } catch (err) {
-  //     console.error('❌ Failed to fetch user:', err)
+  // async function getUser() {
+  //   // Get the CSRF token from the cookie
+  //   let csrfToken = useCookie('csrftoken').value
+
+  //   if (!csrfToken) {
+  //     console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
+  //     const tokenResult = await $userStore.getTokens()  // Ensure you have this method implemented
+  //     csrfToken = useCookie('csrftoken').value
+
+  //     if (!csrfToken) {
+  //       console.error('❌ Still no CSRF token after trying to fetch')
+  //       return null
+  //     }
+  //   } else {
+  //     console.log('✅ CSRF token already available:', csrfToken)
   //   }
-  // }
 
-  // async function getUser() {
   //   try {
   //     const res = await $axios.post('/api/loggedinuser/', {}, {
   //       withCredentials: true,
@@ -69,11 +64,12 @@ export const useUserStore = defineStore('user', () => {
 
   //     console.log('🔁 Full response:', res)
   //     console.log('📦 Returned data:', res.data)
+  //     return res.data
 
   //   } catch (err) {
   //     console.error('❌ Error fetching user:', err.response?.data || err.message)
+  //     return null
   //   }
-
   // }
 
   async function getUser() {
@@ -82,7 +78,7 @@ export const useUserStore = defineStore('user', () => {
 
     if (!csrfToken) {
       console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      const tokenResult = await $userStore.getTokens()  // Ensure you have this method implemented
+      await getTokens()
       csrfToken = useCookie('csrftoken').value
 
       if (!csrfToken) {
@@ -103,15 +99,28 @@ export const useUserStore = defineStore('user', () => {
 
       console.log('🔁 Full response:', res)
       console.log('📦 Returned data:', res.data)
-      return res.data
 
+      const user = res.data.user_data
+
+      // ✅ Set data into store
+      id.value = user.id
+      username.value = user.username
+      bio.value = user.bio
+      image.value = user.image
+      email.value = user.email
+
+      console.log('✅ User set in store:', {
+        id: id.value,
+        username: username.value,
+        email: email.value
+      })
+
+      return user
     } catch (err) {
       console.error('❌ Error fetching user:', err.response?.data || err.message)
       return null
     }
   }
-
-
 
   async function updateUserImage(data) {
     return await $axios.post('/api/update-user-image', data)
@@ -190,9 +199,38 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // async function logout() {
+  //   await $axios.post('/api/logout/')
+  //   resetUser()
+  // }
+
   async function logout() {
-    await $axios.post('/logout')
-    resetUser()
+    // Get the CSRF token from the cookie
+    let csrfToken = useCookie('csrftoken').value
+
+    if (!csrfToken) {
+      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
+      await getTokens()
+      csrfToken = useCookie('csrftoken').value
+
+      if (!csrfToken) {
+        console.error('❌ Still no CSRF token after trying to fetch')
+        return null
+      }
+    } else {
+      console.log('✅ CSRF token already available:', csrfToken)
+    }
+
+    try {
+      const res = await $axios.post('/api/logout/', {}, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': csrfToken,
+        },
+      })
+    } catch (error) {
+      console.error('❌ Error during logout:', error.response?.data || error.message)
+    }
   }
 
   function resetUser() {

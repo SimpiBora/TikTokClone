@@ -82,8 +82,6 @@ const login = async () => {
                     .join(', ')
             )
 
-
-
             // If userData is not available, we cannot proceed
             if (!userData || !userData.user_data?.id) {
                 console.warn('🔒 User not authenticated')
