@@ -70,25 +70,25 @@ const login = async () => {
         console.log('✅ User logged in')
 
         // }
-        // let userId = await $userStore.getUser()
+        let userId = await $userStore.getUser()
 
-        // console.log('🧠 User ID:', userId)
+        console.log('🧠 User ID:', userId)
 
         // await $userStore.login(email.value, password.value)
 
         // FIX: Make sure getUser() sets AND returns user data
-        await $userStore.getUser()
+        // await $userStore.getUser()
 
-        const userId = $userStore.id
-        console.log('🧠 User ID:', userId)
+        // const userId = $userStore.id
+        // console.log('🧠 User ID:', userId)
 
-        if (!userId) {
-            console.warn('🔒 User ID is null. Login may have failed or user is not authenticated.')
-            return
-        }
+        // if (!userId) {
+        //     console.warn('🔒 User ID is null. Login may have failed or user is not authenticated.')
+        //     return
+        // }
 
 
-        const profileData = await $profileStore.getProfile(userId)
+        const profileData = await $profileStore.getProfile(1)
         if (!profileData || !$profileStore.id) {
             console.warn('⚠️ Profile not loaded, cannot redirect')
             return

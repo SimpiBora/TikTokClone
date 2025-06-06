@@ -17,7 +17,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
-
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.viewsets import ViewSet
+from rest_framework.schemas.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema
+from django.middleware.csrf import get_token
+from .serializers import UserSerializer
 from .serializers import (
     LoginSerializer,
     # AllPostsSerializer,
@@ -26,6 +33,12 @@ from .serializers import (
     UsersCollectionSerializer,
     UserSerializer,
 )
+from rest_framework.viewsets import ViewSet
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from django.contrib.auth import logout
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
@@ -118,7 +131,7 @@ class RegisterUserViewSet(ViewSet):
 
 class LoginViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -143,10 +156,13 @@ class LoginViewSet(ViewSet):
             if user is not None:
                 token, _ = Token.objects.get_or_create(user=user)
                 return Response({"token": token.key}, status=status.HTTP_200_OK)
-
+            else:
+                print("Invalid credentials ----> ")
             return Response(
                 {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        # print("serializer.errors ---->", serializer.errors)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,27 +173,11 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 10:
+        if attempts >= 100:  # Limit to 10 attempts
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
         return False
-
-
-from rest_framework.permissions import IsAuthenticated
-
-
-from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ViewSet
-from rest_framework.schemas.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema
-from django.middleware.csrf import get_token
-from .serializers import UserSerializer
-
-from rest_framework.authentication import TokenAuthentication
 
 
 class LoggedInUserViewSet(ViewSet):
@@ -185,7 +185,7 @@ class LoggedInUserViewSet(ViewSet):
     API to get details of the logged-in user.
     """
 
-    authentication_classes = [SessionAuthentication]
+    authentication_classes = []
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -246,15 +246,6 @@ class LoggedInUserViewSet(ViewSet):
 #         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-from rest_framework.viewsets import ViewSet
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.response import Response
-from rest_framework import status
-from drf_spectacular.utils import extend_schema
-from django.contrib.auth import logout
-
-
 class LogoutViewSet(ViewSet):
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -306,21 +297,65 @@ class UpdateUserImage(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+# get_object_or_404
+# import get_object_or_404
 
-class GetUser(APIView):
-    """
-    API to get details of a user by ID.
-    """
+from django.shortcuts import get_object_or_404
 
-    def get(self, request, id):
+class GetUserViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = [IsAuthenticated]  # Disable permissions for this route
+
+    @extend_schema(
+        # This links the serializer for the request body
+        request=UserSerializer,
+        responses={
+            201: UserSerializer
+        },  # Expected response will be the created category
+        tags=["accounts"],
+    )
+
+    def get(self, request, id=None):
         try:
-            user = get_object_or_404(User, id=id)
-            serializer = UserSerializer(user, context={"request": request})
-            return Response(
-                {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
-            )
+            if id is None:
+                # If no ID is provided, return the logged-in user's details
+                user = request.user
+                if not user.is_authenticated:
+                    return Response(
+                        {"error": "User not authenticated"},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+                serializer = UserSerializer(user, context={"request": request})
+                return Response(
+                    {"success": "OK", "user": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                # If an ID is provided, return the user with that ID
+                user = get_object_or_404(User, id=id)
+                serializer = UserSerializer(user, context={"request": request})
+                return Response(
+                    {"success": "OK", "user": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class GetUser(APIView):
+#     """
+#     API to get details of a user by ID.
+#     """
+
+#     def get(self, request, id):
+#         try:
+#             user = get_object_or_404(User, id=id)
+#             serializer = UserSerializer(user, context={"request": request})
+#             return Response(
+#                 {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUser(APIView):

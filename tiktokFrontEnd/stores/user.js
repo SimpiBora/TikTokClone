@@ -168,8 +168,8 @@ export const useUserStore = defineStore('user', () => {
 
     try {
       // Step 3: Make POST request with withCredentials
-      const res = await $axios.post(
-        '/api/loggedinuser/',
+      const res = await $axios.get(
+        '/api/getuser/',
         {},
         {
           withCredentials: true,
