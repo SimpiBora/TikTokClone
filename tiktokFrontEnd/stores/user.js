@@ -19,24 +19,6 @@ export const useUserStore = defineStore('user', () => {
     await $axios.get('/api/csrftoken/')
   }
 
-  // async function login(userEmail, password) {
-  //   await $axios.post('/api/login/', {
-  //     email: userEmail,
-  //     password: password,
-  //   })
-  //   console.log('user store login called')
-  // }
-
-  // async function login(userEmail, password) {
-  //   await $axios.post('/api/login/', {
-  //     email: userEmail,
-  //     password: password
-  //   }, {
-  //     withCredentials: true  // ✅ sends/receives cookies like `sessionid`
-  //   })
-  //   console.log('user store login called')
-  // }
-
   async function login(userEmail, password) {
     console.log('🔐 login() called with:', { userEmail, password })
 
@@ -44,9 +26,11 @@ export const useUserStore = defineStore('user', () => {
       const res = await $axios.post('/api/login/', {
         email: userEmail,
         password: password
-      }, {
-        withCredentials: true  // required to store/set sessionid
-      })
+      }
+      )
+      // , {
+      //   withCredentials: true  // required to store/set sessionid
+      // })
 
       console.log('✅ Login response received')
       console.log('📥 Response data:', res.data)
