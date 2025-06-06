@@ -181,6 +181,8 @@ from drf_spectacular.utils import extend_schema
 from django.middleware.csrf import get_token
 from .serializers import UserSerializer
 
+from rest_framework.authentication import TokenAuthentication
+
 
 class LoggedInUserViewSet(ViewSet):
     """

@@ -69,29 +69,24 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
-        let userId = $userStore.id
-        console.log('userId: --- ', userId);
+        // }
+        // let userId = await $userStore.getUser()
+
+        // console.log('🧠 User ID:', userId)
+
+        // await $userStore.login(email.value, password.value)
+
+        // FIX: Make sure getUser() sets AND returns user data
+        await $userStore.getUser()
+
+        const userId = $userStore.id
+        console.log('🧠 User ID:', userId)
+
         if (!userId) {
-            const userData = await $userStore.getUser()
-            // console.log('userData: --- ', userData);
-            // i want see full response from server 
-            console.log('userData: --- ', JSON.stringify(userData, null, 2));
-            console.log(
-                Object.entries(userData)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join(', ')
-            )
-
-            // If userData is not available, we cannot proceed
-            if (!userData || !userData.user_data?.id) {
-                console.warn('🔒 User not authenticated')
-                return
-            }
-            userId = userData.user_data.id
-
+            console.warn('🔒 User ID is null. Login may have failed or user is not authenticated.')
+            return
         }
 
-        console.log('🧠 User ID:', userId)
 
         const profileData = await $profileStore.getProfile(userId)
         if (!profileData || !$profileStore.id) {
