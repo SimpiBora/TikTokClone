@@ -49,17 +49,13 @@ from .services import FileService
 
 class CSRFTokenViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     """
     Provides a CSRF token to the client as a cookie.
     """
 
     @extend_schema(
-        # request=PostSerializer,  # This links the serializer for the request body
-        # responses={
-        #     201: PostSerializer
-        # },  # Expected response will be the created category
         tags=["accounts"],
     )
     def list(self, request, *args, **kwargs):
@@ -76,7 +72,7 @@ class CSRFTokenViewSet(ViewSet):
 
 class RegisterUserViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
