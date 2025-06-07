@@ -69,15 +69,23 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
+        // Check if user is logged in
+        await $userStore.getUser()
 
-        const profileData = await $profileStore.getProfile(1)
-        if (!profileData || !$profileStore.id) {
-            console.warn('⚠️ Profile not loaded, cannot redirect')
+        if (!$userStore.isLoggedIn) {
+            console.warn('⚠️ User is not logged in after login attempt')
             return
         }
+        console.log('🔑 User is logged in, fetching profile data')
 
-        console.log('🔄 Redirecting to profile page:', $profileStore.id)
-        router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+        // const profileData = await $profileStore.getProfile(1)
+        // if (!profileData || !$profileStore.id) {
+        //     console.warn('⚠️ Profile not loaded, cannot redirect')
+        //     return
+        // }
+
+        // console.log('🔄 Redirecting to profile page:', $profileStore.id)
+        // router.push({ name: 'profile-id', params: { id: $profileStore.id } })
 
         console.log('🔐 Login modal closed')
         $generalStore.isLoginOpen = false

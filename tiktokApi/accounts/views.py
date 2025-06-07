@@ -219,6 +219,7 @@ class LoggedInUserViewSet(ViewSet):
         serializer = UserSerializer(request.user)
         csrf_token = get_token(request)
         # session_id = request.session.session_key
+        # session_id = request.COOKIES.get("sessionid", None)
 
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 

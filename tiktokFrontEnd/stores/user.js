@@ -26,11 +26,8 @@ export const useUserStore = defineStore('user', () => {
       const res = await $axios.post('/api/login/', {
         email: userEmail,
         password: password
-      }
-      )
-      // , {
-      //   withCredentials: true  // required to store/set sessionid
-      // })
+      })
+
 
       console.log('✅ Login response received')
       console.log('📥 Response data:', res.data)
@@ -73,39 +70,10 @@ export const useUserStore = defineStore('user', () => {
     let csrfToken = useCookie('csrftoken').value
     console.log('🍪 Initial CSRF Token:', csrfToken)
 
-    // if (!csrfToken) {
-    //   console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-    //   await getTokens()
-    //   csrfToken = useCookie('csrftoken').value
-    //   console.log('🍪 CSRF Token after fetch:', csrfToken)
-
-    //   if (!csrfToken) {
-    //     console.error('❌ Still no CSRF token after trying to fetch')
-    //     return null
-    //   }
-    // } else {
-    //   console.log('✅ CSRF token already available:', csrfToken)
-    // }
-
-    // const token = useCookie('csrftoken')?.value || localStorage.getItem('token')
-    // if (!token) {
-    //   console.error('❌ No token found in cookies or localStorage')
-    //   return null
-    // }
-    // console.log('🔑 Token found:', token)
-
     try {
       // Step 3: Make POST request with withCredentials
       const res = await $axios.get(
         '/api/loggedinuser/',
-        // {
-        //   withCredentials: true,
-        //   headers: {
-        //     'Authorization': `Token ${csrfToken}`,
-        //     'X-CSRFToken': csrfToken, // optional, if using CSRF,
-        //     'content-type': 'application/json',
-        //   }
-        // }
       )
 
 
