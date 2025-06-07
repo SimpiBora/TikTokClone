@@ -66,56 +66,6 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
-  // async function getUser() {
-  //   // Get the CSRF token from the cookie
-  //   let csrfToken = useCookie('csrftoken').value
-
-  //   if (!csrfToken) {
-  //     console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-  //     await getTokens()
-  //     csrfToken = useCookie('csrftoken').value
-
-  //     if (!csrfToken) {
-  //       console.error('❌ Still no CSRF token after trying to fetch')
-  //       return null
-  //     }
-  //   } else {
-  //     console.log('✅ CSRF token already available:', csrfToken)
-  //   }
-
-  //   try {
-  //     const res = await $axios.post('/api/loggedinuser/', {}, {
-  //       withCredentials: true,
-  //       headers: {
-  //         'X-CSRFToken': csrfToken,
-  //       },
-  //     })
-
-  //     console.log('🔁 Full response:', res)
-  //     console.log('📦 Returned data:', res.data)
-
-  //     const user = res.data.user_data
-
-  //     // ✅ Set data into store
-  //     id.value = user.id
-  //     username.value = user.username
-  //     bio.value = user.bio
-  //     image.value = user.image
-  //     email.value = user.email
-
-  //     console.log('✅ User set in store:', {
-  //       id: id.value,
-  //       username: username.value,
-  //       email: email.value
-  //     })
-
-  //     return user
-  //   } catch (err) {
-  //     console.error('❌ Error fetching user:', err.response?.data || err.message)
-  //     return null
-  //   }
-  // }
-
   async function getUser() {
     console.log('🔍 Starting getUser() function')
 
@@ -123,45 +73,39 @@ export const useUserStore = defineStore('user', () => {
     let csrfToken = useCookie('csrftoken').value
     console.log('🍪 Initial CSRF Token:', csrfToken)
 
-    if (!csrfToken) {
-      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      await getTokens()
-      csrfToken = useCookie('csrftoken').value
-      console.log('🍪 CSRF Token after fetch:', csrfToken)
+    // if (!csrfToken) {
+    //   console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
+    //   await getTokens()
+    //   csrfToken = useCookie('csrftoken').value
+    //   console.log('🍪 CSRF Token after fetch:', csrfToken)
 
-      if (!csrfToken) {
-        console.error('❌ Still no CSRF token after trying to fetch')
-        return null
-      }
-    } else {
-      console.log('✅ CSRF token already available:', csrfToken)
-    }
+    //   if (!csrfToken) {
+    //     console.error('❌ Still no CSRF token after trying to fetch')
+    //     return null
+    //   }
+    // } else {
+    //   console.log('✅ CSRF token already available:', csrfToken)
+    // }
 
-    // Step 2: Log outgoing headers
-    const headers = {
-      'X-CSRFToken': csrfToken,
-    }
-    console.log('📤 Headers being sent:', headers)
-
-    const token = useCookie('csrftoken')?.value || localStorage.getItem('token')
-    if (!token) {
-      console.error('❌ No token found in cookies or localStorage')
-      return null
-    }
-    console.log('🔑 Token found:', token)
+    // const token = useCookie('csrftoken')?.value || localStorage.getItem('token')
+    // if (!token) {
+    //   console.error('❌ No token found in cookies or localStorage')
+    //   return null
+    // }
+    // console.log('🔑 Token found:', token)
 
     try {
       // Step 3: Make POST request with withCredentials
       const res = await $axios.get(
-        '/api/getuser/',
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            'Authorization': `Token ${token}`,
-            'X-CSRFToken': headers // optional, if using CSRF
-          }
-        }
+        '/api/loggedinuser/',
+        // {
+        //   withCredentials: true,
+        //   headers: {
+        //     'Authorization': `Token ${csrfToken}`,
+        //     'X-CSRFToken': csrfToken, // optional, if using CSRF,
+        //     'content-type': 'application/json',
+        //   }
+        // }
       )
 
 
