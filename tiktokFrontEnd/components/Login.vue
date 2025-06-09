@@ -69,23 +69,26 @@ const login = async () => {
         await $userStore.login(email.value, password.value)
         console.log('✅ User logged in')
 
-        // Check if user is logged in
-        await $userStore.getUser()
+        const user = await $userStore.getUser()
+        const user_id = user?.id
+        console.log(`🔍 User data fetched:`, user);
+        console.log(`🔍 User ID: ${user_id}`);
 
-        if (!$userStore.isLoggedIn) {
-            console.warn('⚠️ User is not logged in after login attempt')
+        if (!user_id) {
+            console.warn('⚠️ User ID not found after login')
             return
         }
-        console.log('🔑 User is logged in, fetching profile data')
 
-        // const profileData = await $profileStore.getProfile(1)
-        // if (!profileData || !$profileStore.id) {
-        //     console.warn('⚠️ Profile not loaded, cannot redirect')
-        //     return
-        // }
+        const profileData = await $profileStore.getProfile(user_id)
 
-        // console.log('🔄 Redirecting to profile page:', $profileStore.id)
-        // router.push({ name: 'profile-id', params: { id: $profileStore.id } })
+        console.log('🔍 Profile data fetched:', profileData);
+
+
+        const profileId = profileData?.user?.id
+        if (!profileId) {
+            throw new Error("Profile ID is missing!")
+        }
+        router.push({ name: 'profile-id', params: { id: profileId } })
 
         console.log('🔐 Login modal closed')
         $generalStore.isLoginOpen = false
@@ -95,4 +98,5 @@ const login = async () => {
         errors.value = error.response?.data?.errors || { general: ['Login failed'] }
     }
 }
+
 </script>

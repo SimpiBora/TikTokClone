@@ -1,3 +1,4 @@
+import re
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
@@ -39,6 +40,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 from django.contrib.auth import logout
+# import response
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
@@ -115,12 +117,21 @@ class RegisterUserViewSet(ViewSet):
                 print("token ---->", token)
                 # send email verification
 
-                return Response(
+                # return Response(
+                #     {
+                #         "token": token.key,
+                #     },
+                #     status=status.HTTP_201_CREATED,
+                # )
+
+                response = Response(
                     {
                         "token": token.key,
-                    },
-                    status=status.HTTP_201_CREATED,
+                        "success": f"You {request.user.username} or successfully registered !!",
+                        "status": status.HTTP_201_CREATED,
+                    }
                 )
+                return response
             except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
@@ -147,22 +158,21 @@ class LoginViewSet(ViewSet):
 
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            print("inside is_valid ------> ", serializer.is_valid)
             email = serializer.validated_data["email"]
-            print("email ------> ", serializer.is_valid)
             password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
             if user is not None:
-                token, _ = Token.objects.get_or_create(user=user)
-                return Response({"token": token.key}, status=status.HTTP_200_OK)
-            else:
-                print("Invalid credentials ----> ")
-            return Response(
-                {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
-            )
+                login(request, user)  # ✅ Set sessionid cookie
 
-        # print("serializer.errors ---->", serializer.errors)
+                return Response(
+                    {"detail": "Login successful"}, status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"detail": "Invalid credentials"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -185,7 +195,7 @@ class LoggedInUserViewSet(ViewSet):
     API to get details of the logged-in user.
     """
 
-    authentication_classes = []
+    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -218,8 +228,7 @@ class LoggedInUserViewSet(ViewSet):
         # Serialize and prepare response
         serializer = UserSerializer(request.user)
         csrf_token = get_token(request)
-        # session_id = request.session.session_key
-        # session_id = request.COOKIES.get("sessionid", None)
+        session_id = request.COOKIES.get("sessionid", None)
 
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 
@@ -228,7 +237,7 @@ class LoggedInUserViewSet(ViewSet):
                 "debug": "No errors, user fetched",
                 "user_data": serializer.data,
                 "csrf_token": csrf_token,
-                # "sessionid": session_id,
+                "sessionid": session_id,
             },
             status=HTTP_200_OK,
         )
@@ -238,146 +247,8 @@ class LoggedInUserViewSet(ViewSet):
 
         return response
 
-    # def list(self, request):
-    #     print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.list")
-
-    #     # Authentication Info
-    #     print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-    #     print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
-
-    #     # Headers
-    #     print("📦 [DEBUG] Request Headers:")
-    #     for key, value in request.headers.items():
-    #         print(f"   {key}: {value}")
-
-    #     # Cookies
-    #     print("🍪 [DEBUG] Request Cookies:")
-    #     for key, value in request.COOKIES.items():
-    #         print(f"   {key}: {value}")
-
-    #     # Session
-    #     print("📘 [DEBUG] Session Keys:")
-    #     for key in request.session.keys():
-    #         print(f"   {key}: {request.session.get(key)}")
-
-    #     # Serialize and prepare response
-    #     serializer = UserSerializer(request.user)
-    #     csrf_token = get_token(request)
-    #     session_id = request.session.session_key
-
-    #     print("✅ [DEBUG] Serialized user data:", serializer.data)
-
-    #     response = Response(
-    #         {
-    #             "debug": "No errors, user fetched",
-    #             "user_data": serializer.data,
-    #             "csrf_token": csrf_token,
-    #             "sessionid": session_id,
-    #         },
-    #         status=HTTP_200_OK,
-    #     )
-
-    #     # Optionally also return CSRF token in headers (for frontend convenience)
-    #     response.headers["X-CSRFToken"] = csrf_token
-
-    #     return response
-
-    # def create(self, request):
-    #     print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
-
-    #     # Authentication Info
-    #     print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-    #     print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
-
-    #     # Headers
-    #     print("📦 [DEBUG] Request Headers:")
-    #     for key, value in request.headers.items():
-    #         print(f"   {key}: {value}")
-
-    #     # Cookies
-    #     print("🍪 [DEBUG] Request Cookies:")
-    #     for key, value in request.COOKIES.items():
-    #         print(f"   {key}: {value}")
-
-    #     # Session
-    #     print("📘 [DEBUG] Session Keys:")
-    #     for key in request.session.keys():
-    #         print(f"   {key}: {request.session.get(key)}")
-
-    #     # Serialize and prepare response
-    #     serializer = UserSerializer(request.user)
-    #     csrf_token = get_token(request)
-    #     session_id = request.session.session_key
-
-    #     print("✅ [DEBUG] Serialized user data:", serializer.data)
-
-    #     response = Response(
-    #         {
-    #             "debug": "No errors, user fetched",
-    #             "user_data": serializer.data,
-    #             "csrf_token": csrf_token,
-    #             "sessionid": session_id,
-    #         },
-    #         status=HTTP_200_OK,
-    #     )
-
-    #     # Optionally also return CSRF token in headers (for frontend convenience)
-    #     response.headers["X-CSRFToken"] = csrf_token
-
-    #     return response
-
 
 from django.shortcuts import get_object_or_404
-
-
-class GetUserViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = [IsAuthenticated]  # Disable permissions for this route
-
-    @extend_schema(
-        # This links the serializer for the request body
-        request=UserSerializer,
-        responses={
-            201: UserSerializer
-        },  # Expected response will be the created category
-        tags=["accounts"],
-    )
-    def list(self, request):
-        """
-        Get details of a user by ID.
-        """
-        user = request.user
-        user_data = self.get_object()
-        print("user data", user_data)
-
-        if not user.is_authenticated:
-            return Response(
-                {"error": "User is not authenticated"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-        
-        else: 
-            user = User.objects.first()
-            posts = Post.objects.filter(user=user).order_by("-created_at")
-
-            # Serialize the data
-            post_serializer = PostSerializer(
-                posts, many=True, context={"request": request}
-            )
-            user_serializer = UserSerializer(user)
-
-            return Response(
-                {
-                    "posts": post_serializer.data,
-                    "user": user_serializer.data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 
 
 class ProfileViewSet(ViewSet):
