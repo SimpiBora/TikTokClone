@@ -6,20 +6,18 @@
                 <img class="max-w-[120px] rounded-full" :src="$profileStore.image">
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name 
+                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
                     </div>
                     <div class="text-[18px] truncate">{{ $profileStore.username }}</div> -- name
+
+
+
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
                         <div>Edit profile</div>
                     </button>
-                    <!-- <button v-if="$profileStore.id && $userStore.id && $profileStore.id === $userStore.id"
-                        @click="$generalStore.isEditProfileOpen = true"
-                        class="flex items-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
-                        <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
-                        <div>Edit profile</div>
-                    </button> -->
+
 
                     <button v-else
                         class="flex item-center rounded-md py-1.5 px-8 mt-3 text-[15px] text-white font-semibold bg-[#F02C56]">
@@ -69,7 +67,6 @@ import MainLayout from '~/layouts/MainLayout.vue';
 import { storeToRefs } from 'pinia';
 const { $userStore, $profileStore, $generalStore } = useNuxtApp()
 const { posts, allLikes } = storeToRefs($profileStore)
-const { id: user } = storeToRefs($userStore)
 
 
 const route = useRoute()
@@ -89,7 +86,7 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
-    console.log('🧩 user ID:', user.id)
+    console.log('🧩 user ID:', $userStore.id)
 
 })
 
