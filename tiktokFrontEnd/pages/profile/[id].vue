@@ -6,7 +6,7 @@
                 <img class="max-w-[120px] rounded-full" :src="$profileStore.image">
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name 
+                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
                     </div>
                     <div class="text-[18px] truncate">{{ $profileStore.username }}</div> -- name
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
@@ -69,7 +69,6 @@ import MainLayout from '~/layouts/MainLayout.vue';
 import { storeToRefs } from 'pinia';
 const { $userStore, $profileStore, $generalStore } = useNuxtApp()
 const { posts, allLikes } = storeToRefs($profileStore)
-const { id: user } = storeToRefs($userStore)
 
 
 const route = useRoute()
@@ -89,7 +88,7 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
-    console.log('🧩 user ID:', user.id)
+    console.log('user id coming from user store', $userStore.id);
 
 })
 
