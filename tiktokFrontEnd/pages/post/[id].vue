@@ -22,8 +22,8 @@
             <img class="absolute top-[18px] left-[70px] rounded-full lg:mx-0 mx-auto" width="45"
                 src="~/assets/images/tiktok-logo-small.png">
 
-            <video v-if="$generalStore.selectedPost.video" class="absolute object-cover w-full my-auto z-[-1] h-screen"
-                :src="$generalStore.selectedPost.video" />
+            <!-- <video v-if="$generalStore.selectedPost.video" class="absolute object-cover w-full my-auto z-[-1] h-screen"
+                :src="$generalStore.selectedPost.video" /> -->
 
             <div v-if="!isLoaded"
                 class="flex items-center justify-center bg-black bg-opacity-70 h-screen lg:min-w-[480px]">
@@ -158,6 +158,12 @@ onMounted(async () => {
     $generalStore.selectedPost = null
     try {
         await $generalStore.getPostById(route.params.id)
+        console.log('is id coming or not ', route.params.id)
+        if (!$generalStore.selectedPost) {
+            router.push('/')
+        } else {
+            $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id)
+        };
     } catch (error) {
         if (error && error.response.status === 400) {
             router.push('/')
@@ -187,8 +193,22 @@ watch(() => isLoaded.value, () => {
 
 const loopThroughPostsDown = () => {
     setTimeout(() => {
-        let idArrayReversed = $generalStore.ids.reverse()
+        // let idArrayReversed = $generalStore.ids.reverse()
+        let idArrayReversed = [...$generalStore.ids].reverse()
+
         let isBreak = false
+        // onBeforeUnmount(() => {
+        //   video.value.pause()
+        //   video.value.currentTime = 0
+        //   video.value.src = ''
+        // })
+        onBeforeUnmount(() => {
+            if (video.value) {
+                video.value.pause()
+                video.value.currentTime = 0
+                video.value.src = ''
+            }
+        })
 
         for (let i = 0; i < idArrayReversed.length; i++) {
             const id = idArrayReversed[i];
