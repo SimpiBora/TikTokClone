@@ -30,6 +30,35 @@ class HomeViewSet(ViewSet):
             )
 
 
+class PostViewSets(ViewSet):
+    @extend_schema(
+        request=PostSerializer,  # This links the serializer for the request body
+        responses={
+            200: PostSerializer,  # This links the serializer for the response
+        },  # Expected response will be the created category
+        tags=["Posts"],
+        summary="Single post retrieve",
+        # path="posts/<int:pk>/",
+        description="This endpoint allows you to retrieve a single post.",
+    )
+
+    def retrieve(self, request, pk=None):
+        try:
+            queryset = Post.objects.filter(id=pk)
+            if not queryset.exists():
+                return Response(
+                    {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+            serializer = PostSerializer(
+                queryset, many=True, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
 # class PostDetailView(APIView):
 #     """
 #     API to retrieve a specific post and related posts by the same user.
