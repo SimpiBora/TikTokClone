@@ -1,4 +1,5 @@
 import re
+import stat
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
@@ -19,8 +20,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.viewsets import ViewSet
 from rest_framework.schemas.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema
@@ -239,7 +238,7 @@ class LoggedInUserViewSet(ViewSet):
                 "csrf_token": csrf_token,
                 "sessionid": session_id,
             },
-            status=HTTP_200_OK,
+            status=status.HTTP_200_OK,
         )
 
         # Optionally also return CSRF token in headers (for frontend convenience)
