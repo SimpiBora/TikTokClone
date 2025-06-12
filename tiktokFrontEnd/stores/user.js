@@ -198,34 +198,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
 
-
-
-
-
-
-
-
-  // async function logout() {
-  //   await $axios.post('/api/logout/')
-  //   resetUser()
-  // }
-
   async function logout() {
-    // Get the CSRF token from the cookie
-    let csrfToken = useCookie('csrftoken').value
-
-    if (!csrfToken) {
-      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      await getTokens()
-      csrfToken = useCookie('csrftoken').value
-
-      if (!csrfToken) {
-        console.error('❌ Still no CSRF token after trying to fetch')
-        return null
-      }
-    } else {
-      console.log('✅ CSRF token already available:', csrfToken)
-    }
 
     try {
       const res = await $axios.post('/api/logout/', {
@@ -234,7 +207,8 @@ export const useUserStore = defineStore('user', () => {
           'Authorization': `Token ${useCookie('csrftoken').value}`,
           'X-CSRFToken': useCookie('csrftoken').value || ''
         }
-      })
+      }
+      )
     } catch (error) {
       console.error('❌ Error during logout:', error.response?.data || error.message)
     }
