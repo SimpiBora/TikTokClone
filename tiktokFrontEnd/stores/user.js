@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
 import { useGeneralStore } from './general'
-
+// const generalStore = useGeneralStore()
 const $axios = axios().provide.axios
 
 export const useUserStore = defineStore('user', () => {
@@ -71,7 +71,6 @@ export const useUserStore = defineStore('user', () => {
       return null
     }
   }
-
 
   async function register(userName, userEmail, password, confirmPassword) {
     await $axios.post('/api/registeruser/', {
@@ -181,7 +180,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-
   async function updateUserImage(data) {
     return await $axios.post('/api/update-user-image', data)
   }
@@ -236,8 +234,15 @@ export const useUserStore = defineStore('user', () => {
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
 
-    const res = await $axios.post('/api/likes', {
+    // const res = await $axios.post('/api/likes', {
+    const res = await $axios.post('/api/like/post/', {
       post_id: post.id,
+    }, {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Token ${useCookie('csrftoken').value}`,
+        'X-CSRFToken': useCookie('csrftoken').value || ''
+      }
     })
 
     const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
@@ -251,18 +256,20 @@ export const useUserStore = defineStore('user', () => {
 
     const deleteLike = singlePost.likes.find(like => like.user_id === id.value)
 
-    const res = await $axios.delete(`/api/likes/${deleteLike.id}`)
+    const res = await $axios.delete(`/api/likedelete/${deleteLike.id}/`,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      })
 
     const index = singlePost.likes.findIndex(like => like.id === res.data.like.id)
     if (index !== -1) {
       singlePost.likes.splice(index, 1)
     }
   }
-
-  // async function logout() {
-  //   await $axios.post('/api/logout/')
-  //   resetUser()
-  // }
 
   async function logout() {
     // Get the CSRF token from the cookie

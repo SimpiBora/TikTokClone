@@ -348,25 +348,6 @@ class UpdateUserImage(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# get_object_or_404
-# import get_object_or_404
-
-
-# class GetUser(APIView):
-#     """
-#     API to get details of a user by ID.
-#     """
-
-#     def get(self, request, id):
-#         try:
-#             user = get_object_or_404(User, id=id)
-#             serializer = UserSerializer(user, context={"request": request})
-#             return Response(
-#                 {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UpdateUser(APIView):
     """
