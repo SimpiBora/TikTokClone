@@ -156,11 +156,46 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // async function likePost(post, isPostPage) {
+  //   const generalStore = useGeneralStore()
+
+  //   const res = await $axios.post('/api/likes', {
+  //     post_id: post.id,
+  //   })
+
+  //   const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
+  //   singlePost?.likes?.push(res.data.like)
+  // }
+
+  // async function unlikePost(post, isPostPage) {
+  //   const generalStore = useGeneralStore()
+
+  //   const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
+
+  //   const deleteLike = singlePost.likes.find(like => like.user_id === id.value)
+
+  //   const res = await $axios.delete(`/api/likes/${deleteLike.id}`)
+
+  //   const index = singlePost.likes.findIndex(like => like.id === res.data.like.id)
+  //   if (index !== -1) {
+  //     singlePost.likes.splice(index, 1)
+  //   }
+  // }
+
+
+
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
 
-    const res = await $axios.post('/api/likes', {
+    // const res = await $axios.post('/api/likes', {
+    const res = await $axios.post('/api/like/post/', {
       post_id: post.id,
+    }, {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Token ${useCookie('csrftoken').value}`,
+        'X-CSRFToken': useCookie('csrftoken').value || ''
+      }
     })
 
     const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
@@ -174,13 +209,28 @@ export const useUserStore = defineStore('user', () => {
 
     const deleteLike = singlePost.likes.find(like => like.user_id === id.value)
 
-    const res = await $axios.delete(`/api/likes/${deleteLike.id}`)
+    const res = await $axios.delete(`/api/likedelete/${deleteLike.id}/`,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      })
 
     const index = singlePost.likes.findIndex(like => like.id === res.data.like.id)
     if (index !== -1) {
       singlePost.likes.splice(index, 1)
     }
   }
+
+
+
+
+
+
+
+
 
   // async function logout() {
   //   await $axios.post('/api/logout/')
