@@ -83,6 +83,9 @@ const { $generalStore, $userStore } = useNuxtApp()
 const props = defineProps({
     post: Object
 })
+console.log('props: post Object ', props.post);
+
+
 const post = ref(props.post)
 
 const router = useRouter()
@@ -163,6 +166,10 @@ const displayPost = (post) => {
     }
     $generalStore.setBackUrl('/')
     $generalStore.selectedPost = null
-    setTimeout(() => router.push(`/post/${post.id}`), 200)
+    // setTimeout(() => router.push(`/post/${post.id}`), 200)
+    setTimeout(() => {
+        router.push({ name: 'post-id', params: { id: post.id } })
+        // $generalStore.selectedPost = post
+    }, 200)
 }
 </script>

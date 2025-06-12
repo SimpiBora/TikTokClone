@@ -13,9 +13,13 @@
 #     path('', include('route.urls'))
 # ]
 
-
 from inspect import getmembers, isclass
 
+<<<<<<< HEAD
+from inspect import getmembers, isclass
+
+=======
+>>>>>>> 5cb49775b6c5c96c5908b73ee603794a2ae24908
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ViewSet
@@ -39,6 +43,10 @@ urlpatterns = [
     # Manually add the custom path for DynamicCategoryURLFilterViewSet
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5cb49775b6c5c96c5908b73ee603794a2ae24908
 # from django.urls import path
 # from .views import LikeCreateView, LikeDeleteView, LikeView
 # # from .views import LikesCountView, LikeCreateView, LikeDeleteView, LikeView

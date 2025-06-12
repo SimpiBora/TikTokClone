@@ -156,6 +156,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+<<<<<<< HEAD
 
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
@@ -168,6 +169,30 @@ export const useUserStore = defineStore('user', () => {
       headers: {
         'Authorization': `Token ${useCookie('csrftoken').value}`,
         'X-CSRFToken': useCookie('csrftoken').value || ''
+=======
+  // add logs 
+
+  // console.log('👍 likePost() called with:', { postId: post.id, isPostPage })
+  // console.log('   Current user id:', id.value)
+  // console.log('   CSRF token:', useCookie('csrftoken').value) const generalStore = useGeneralStore()
+
+
+  async function likePost(post, isPostPage) {
+    console.log('👍 likePost() called with:', { postId: post.id, isPostPage })
+    console.log('   Current user id:', id.value)
+    console.log('   CSRF token:', useCookie('csrftoken').value)
+    console.log('sessionid:', useCookie('sessionid').value);
+
+    
+    const res = await $axios.post('/api/likes/', {
+      post_id: post.id,
+      // user_id: id.value
+    }, {
+      withCredentials: true,
+      headers: {
+        'X-CSRFToken': useCookie('csrftoken').value,
+        // sessionid: useCookie('sessionid').value,
+>>>>>>> 5cb49775b6c5c96c5908b73ee603794a2ae24908
       }
     })
 
