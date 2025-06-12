@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "search",
     # third party apps
     "drf_spectacular",
-    
     # external apps
     "rest_framework",
     "rest_framework.authtoken",
@@ -194,6 +193,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",  # Frontend origin
 ]
 
+# settings.py
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # or 127.0.0.1 if needed
+    "http://127.0.1:3000",  # or localhost if needed
+]
+
+
 # Optional: Allow all HTTP methods
 CORS_ALLOW_METHODS = [
     "GET",
@@ -204,11 +210,16 @@ CORS_ALLOW_METHODS = [
     "OPTIONS",
 ]
 
+SESSION_COOKIE_SAMESITE = "Lax"  # or "None" if HTTPS
+SESSION_COOKIE_SECURE = False  # True only in HTTPS
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = False
+
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

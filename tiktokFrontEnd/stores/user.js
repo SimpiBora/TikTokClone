@@ -8,6 +8,7 @@ const $axios = axios().provide.axios
 export const useUserStore = defineStore('user', () => {
   // State
   const id = ref('')
+  const name = ref('')
   const username = ref('')
   const bio = ref('')
   const image = ref('')
@@ -20,15 +21,47 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function login(userEmail, password) {
-    await $axios.post('/api/login/', {
-      email: userEmail,
-      password: password,
-    })
-    console.log('user store login called')
+    console.log('🔐 login() called with:', { userEmail, password })
+
+
+    try {
+      const res = await $axios.post('/api/login/', {
+        email: userEmail,
+        password: password
+      },
+        { withCredentials: true }
+      )
+
+
+
+      console.log('✅ Login response received')
+      console.log('📥 Response data:', res.data)
+      console.log('📥 Response headers:', res.headers)
+
+      // Log cookies available on client (for debugging)
+      const sessionCookie = useCookie('sessionid').value
+      const csrfCookie = useCookie('csrftoken').value
+
+      console.log('🍪 Cookies after login:')
+      console.log('   sessionid:', sessionCookie)
+      console.log('   csrftoken:', csrfCookie)
+
+      console.log('🧪 If sessionid is missing, session was not created on backend')
+
+      return res.data
+    } catch (err) {
+      console.error('❌ Login failed')
+      console.error('🛑 Error message:', err.message)
+      console.error('📦 Error response:', err.response?.data)
+      console.error('📥 Error headers:', err.response?.headers)
+      return null
+    }
   }
 
-  async function register(userName, userEmail, password, confirmPassword) {
+
+  async function register(name, userName, userEmail, password, confirmPassword) {
     await $axios.post('/api/registeruser/', {
+      name: name,
       username: userName,
       email: userEmail,
       password: password,
@@ -36,83 +69,96 @@ export const useUserStore = defineStore('user', () => {
     })
   }
 
-
   // async function getUser() {
-  //   // Get the CSRF token from the cookie
+  //   console.log('🔍 Starting getUser() function')
+
+  //   // Step 1: CSRF Token Check
   //   let csrfToken = useCookie('csrftoken').value
-
-  //   if (!csrfToken) {
-  //     console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-  //     const tokenResult = await $userStore.getTokens()  // Ensure you have this method implemented
-  //     csrfToken = useCookie('csrftoken').value
-
-  //     if (!csrfToken) {
-  //       console.error('❌ Still no CSRF token after trying to fetch')
-  //       return null
-  //     }
-  //   } else {
-  //     console.log('✅ CSRF token already available:', csrfToken)
-  //   }
+  //   console.log('🍪 Initial CSRF Token:', csrfToken)
 
   //   try {
-  //     const res = await $axios.post('/api/loggedinuser/', {}, {
-  //       withCredentials: true,
-  //       headers: {
-  //         'X-CSRFToken': csrfToken,
-  //       },
+  //     // Step 3: Make POST request with withCredentials
+  //     const res = await $axios.get(
+  //       '/api/loggedinuser/',
+  //     )
+
+
+  //     // Step 4: Log raw response
+  //     console.log('📡 Full Axios Response:', res)
+  //     console.log('📦 Response Data:', res.data)
+
+  //     // Step 5: Extract and log user_data
+  //     const user = res.data.user_data
+  //     console.log('👤 Extracted user_data:', JSON.stringify(user, null, 2))
+
+  //     if (!user || !user.id) {
+  //       console.warn('⚠️ No user data found in response')
+  //       return null
+  //     }
+
+  //     // Step 6: Log each value you are setting
+  //     console.log('🧠 Setting user in store:')
+  //     console.log('   id:', user.id)
+  //     console.log('   username:', user.username)
+  //     console.log('   bio:', user.bio)
+  //     console.log('   image:', user.image)
+  //     console.log('   email:', user.email)
+
+  //     // Step 7: Actually set into your store
+  //     id.value = user.id
+  //     username.value = user.username
+  //     bio.value = user.bio
+  //     image.value = user.image
+  //     email.value = user.email
+
+  //     // Step 8: Final log summary
+  //     console.log('✅ User successfully set in store:', {
+  //       id: id.value,
+  //       username: username.value,
+  //       email: email.value,
   //     })
 
-  //     console.log('🔁 Full response:', res)
-  //     console.log('📦 Returned data:', res.data)
-  //     return res.data
-
+  //     return user
   //   } catch (err) {
-  //     console.error('❌ Error fetching user:', err.response?.data || err.message)
+  //     console.error('❌ Error fetching user:')
+  //     console.error('   Message:', err.message)
+  //     if (err.response) {
+  //       console.error('   Status:', err.response.status)
+  //       console.error('   Data:', JSON.stringify(err.response.data, null, 2))
+  //       console.error('   Headers:', err.response.headers)
+  //     } else {
+  //       console.error('   No response received')
+  //     }
   //     return null
   //   }
   // }
 
   async function getUser() {
-    // Get the CSRF token from the cookie
-    let csrfToken = useCookie('csrftoken').value
-
-    if (!csrfToken) {
-      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      await getTokens()
-      csrfToken = useCookie('csrftoken').value
-
-      if (!csrfToken) {
-        console.error('❌ Still no CSRF token after trying to fetch')
-        return null
-      }
-    } else {
-      console.log('✅ CSRF token already available:', csrfToken)
-    }
+    console.log('🔍 Starting getUser() function')
 
     try {
-      const res = await $axios.post('/api/loggedinuser/', {}, {
+      const res = await $axios.get('/api/loggedinuser/', {
         withCredentials: true,
-        headers: {
-          'X-CSRFToken': csrfToken,
-        },
       })
-
-      console.log('🔁 Full response:', res)
-      console.log('📦 Returned data:', res.data)
 
       const user = res.data.user_data
 
-      // ✅ Set data into store
+      if (!user || !user.id) {
+        console.warn('⚠️ No user data found in response')
+        return null
+      }
+
+      // Set store values
       id.value = user.id
       username.value = user.username
       bio.value = user.bio
       image.value = user.image
       email.value = user.email
 
-      console.log('✅ User set in store:', {
+      console.log('✅ User successfully set in store:', {
         id: id.value,
         username: username.value,
-        email: email.value
+        email: email.value,
       })
 
       return user
@@ -121,6 +167,7 @@ export const useUserStore = defineStore('user', () => {
       return null
     }
   }
+
 
   async function updateUserImage(data) {
     return await $axios.post('/api/update-user-image', data)
@@ -173,11 +220,29 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  async function likePost(post, isPostPage) {
-    const generalStore = useGeneralStore()
+  // add logs 
 
-    const res = await $axios.post('/api/likes', {
+  // console.log('👍 likePost() called with:', { postId: post.id, isPostPage })
+  // console.log('   Current user id:', id.value)
+  // console.log('   CSRF token:', useCookie('csrftoken').value) const generalStore = useGeneralStore()
+
+
+  async function likePost(post, isPostPage) {
+    console.log('👍 likePost() called with:', { postId: post.id, isPostPage })
+    console.log('   Current user id:', id.value)
+    console.log('   CSRF token:', useCookie('csrftoken').value)
+    console.log('sessionid:', useCookie('sessionid').value);
+
+    
+    const res = await $axios.post('/api/likes/', {
       post_id: post.id,
+      // user_id: id.value
+    }, {
+      withCredentials: true,
+      headers: {
+        'X-CSRFToken': useCookie('csrftoken').value,
+        // sessionid: useCookie('sessionid').value,
+      }
     })
 
     const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)

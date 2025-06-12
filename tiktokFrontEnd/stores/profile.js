@@ -9,6 +9,8 @@ const $axios = axios().provide.axios
 export const useProfileStore = defineStore('profile', () => {
   const id = ref('')
   const name = ref('')
+  const username = ref('')
+  // username is not used in the store, but kept for potential future use
   const bio = ref('')
   const image = ref('')
   const post = ref(null)
@@ -25,12 +27,14 @@ export const useProfileStore = defineStore('profile', () => {
       const { user, posts: userPosts } = res.data
 
       if (!user) {
-        console.warn('⚠️ No user object returned from API')
+        console.warn('⚠️ No user object returned from profile ID: 1 API')
         return
       }
 
       id.value = user.id || ''
       name.value = user.name || user.username || ''
+      username.value = user.username || ''
+      // username is not used in the store, but kept for potential future use
       bio.value = user.bio || ''
       image.value = user.image || ''
       posts.value = userPosts || []
@@ -57,6 +61,8 @@ export const useProfileStore = defineStore('profile', () => {
   function reset() {
     id.value = ''
     name.value = ''
+    username.value = ''
+    // username is not used in the store, but kept for potential future use
     bio.value = ''
     image.value = ''
     post.value = null
@@ -67,6 +73,7 @@ export const useProfileStore = defineStore('profile', () => {
   return {
     id,
     name,
+    username,
     bio,
     image,
     post,

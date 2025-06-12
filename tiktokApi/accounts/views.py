@@ -1,3 +1,5 @@
+import re
+import stat
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
@@ -17,7 +19,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
-
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
+from rest_framework.schemas.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema
+from django.middleware.csrf import get_token
+from .serializers import UserSerializer
 from .serializers import (
     LoginSerializer,
     # AllPostsSerializer,
@@ -26,6 +33,13 @@ from .serializers import (
     UsersCollectionSerializer,
     UserSerializer,
 )
+from rest_framework.viewsets import ViewSet
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from django.contrib.auth import logout
+# import response
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
@@ -49,17 +63,13 @@ from .services import FileService
 
 class CSRFTokenViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     """
     Provides a CSRF token to the client as a cookie.
     """
 
     @extend_schema(
-        # request=PostSerializer,  # This links the serializer for the request body
-        # responses={
-        #     201: PostSerializer
-        # },  # Expected response will be the created category
         tags=["accounts"],
     )
     def list(self, request, *args, **kwargs):
@@ -76,7 +86,7 @@ class CSRFTokenViewSet(ViewSet):
 
 class RegisterUserViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -106,12 +116,21 @@ class RegisterUserViewSet(ViewSet):
                 print("token ---->", token)
                 # send email verification
 
-                return Response(
+                # return Response(
+                #     {
+                #         "token": token.key,
+                #     },
+                #     status=status.HTTP_201_CREATED,
+                # )
+
+                response = Response(
                     {
                         "token": token.key,
-                    },
-                    status=status.HTTP_201_CREATED,
+                        "success": f"You {request.user.username} or successfully registered !!",
+                        "status": status.HTTP_201_CREATED,
+                    }
                 )
+                return response
             except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
@@ -122,7 +141,7 @@ class RegisterUserViewSet(ViewSet):
 
 class LoginViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -138,19 +157,21 @@ class LoginViewSet(ViewSet):
 
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            print("inside is_valid ------> ", serializer.is_valid)
             email = serializer.validated_data["email"]
-            print("email ------> ", serializer.is_valid)
             password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
             if user is not None:
-                token, _ = Token.objects.get_or_create(user=user)
-                return Response({"token": token.key}, status=status.HTTP_200_OK)
+                login(request, user)  # ✅ Set sessionid cookie
 
-            return Response(
-                {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
-            )
+                return Response(
+                    {"detail": "Login successful"}, status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"detail": "Invalid credentials"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -161,25 +182,11 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 10:
+        if attempts >= 100:  # Limit to 10 attempts
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
         return False
-
-
-from rest_framework.permissions import IsAuthenticated
-
-
-from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ViewSet
-from rest_framework.schemas.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema
-from django.middleware.csrf import get_token
-from .serializers import UserSerializer
 
 
 class LoggedInUserViewSet(ViewSet):
@@ -195,8 +202,8 @@ class LoggedInUserViewSet(ViewSet):
         responses={200: UserSerializer},
         tags=["accounts"],
     )
-    def create(self, request):
-        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
+    def list(self, request):
+        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.retrieve")
 
         # Authentication Info
         print(f"🔐 [DEBUG] Authenticated user: {request.user}")
@@ -220,7 +227,7 @@ class LoggedInUserViewSet(ViewSet):
         # Serialize and prepare response
         serializer = UserSerializer(request.user)
         csrf_token = get_token(request)
-        session_id = request.session.session_key
+        session_id = request.COOKIES.get("sessionid", None)
 
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 
@@ -231,7 +238,7 @@ class LoggedInUserViewSet(ViewSet):
                 "csrf_token": csrf_token,
                 "sessionid": session_id,
             },
-            status=HTTP_200_OK,
+            status=status.HTTP_200_OK,
         )
 
         # Optionally also return CSRF token in headers (for frontend convenience)
@@ -240,21 +247,52 @@ class LoggedInUserViewSet(ViewSet):
         return response
 
 
+from django.shortcuts import get_object_or_404
+
+
+class ProfileViewSet(ViewSet):
+    authentication_classes = []  # Disable authentication for this route
+    permission_classes = []  # Disable permissions for this route
+    """
+    API to display the user's posts and profile information.
+    """
+
+    @extend_schema(
+        responses={200: UserSerializer},
+        tags=["accounts"],
+        description="Retrieve a user's profile and their posts.",
+    )
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a user's profile and their posts.
+        """
+        try:
+            user = get_object_or_404(User, pk=pk)
+            posts = Post.objects.filter(user=user).order_by("-created_at")
+
+            # Serialize the data
+            post_serializer = PostSerializer(
+                posts, many=True, context={"request": request}
+            )
+            user_serializer = UserSerializer(user)
+
+            return Response(
+                {
+                    "posts": post_serializer.data,
+                    "user": user_serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # class LogoutView(APIView):
 #     permission_classes = [IsAuthenticated]
 
 #     def post(self, request):
 #         request.user.auth_token.delete()  # Delete the token to log out
 #         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-from rest_framework.viewsets import ViewSet
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.response import Response
-from rest_framework import status
-from drf_spectacular.utils import extend_schema
-from django.contrib.auth import logout
 
 
 class LogoutViewSet(ViewSet):
@@ -309,20 +347,24 @@ class UpdateUserImage(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetUser(APIView):
-    """
-    API to get details of a user by ID.
-    """
+# get_object_or_404
+# import get_object_or_404
 
-    def get(self, request, id):
-        try:
-            user = get_object_or_404(User, id=id)
-            serializer = UserSerializer(user, context={"request": request})
-            return Response(
-                {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# class GetUser(APIView):
+#     """
+#     API to get details of a user by ID.
+#     """
+
+#     def get(self, request, id):
+#         try:
+#             user = get_object_or_404(User, id=id)
+#             serializer = UserSerializer(user, context={"request": request})
+#             return Response(
+#                 {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateUser(APIView):
@@ -424,43 +466,6 @@ class PostDeleteView(APIView):
             post.delete()
 
             return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProfileViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
-    """
-    API to display the user's posts and profile information.
-    """
-
-    @extend_schema(
-        responses={200: UserSerializer},
-        tags=["accounts"],
-        description="Retrieve a user's profile and their posts.",
-    )
-    def retrieve(self, request, pk=None):
-        """
-        Retrieve a user's profile and their posts.
-        """
-        try:
-            user = get_object_or_404(User, pk=pk)
-            posts = Post.objects.filter(user=user).order_by("-created_at")
-
-            # Serialize the data
-            post_serializer = PostSerializer(
-                posts, many=True, context={"request": request}
-            )
-            user_serializer = UserSerializer(user)
-
-            return Response(
-                {
-                    "posts": post_serializer.data,
-                    "user": user_serializer.data,
-                },
-                status=status.HTTP_200_OK,
-            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
