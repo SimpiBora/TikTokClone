@@ -125,11 +125,18 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function addComment(post, comment) {
-    const res = await $axios.post('/api/comments', {
-      post_id: post.id,
-      comment,
-    })
-
+    const res = await $axios.post('/api/comments/post/',
+      {
+        post_id: post.id,
+        comment,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      })
     if (res.status === 200) {
       await updateComments(post)
     }
