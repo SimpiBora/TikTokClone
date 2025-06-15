@@ -3,7 +3,9 @@
         <div v-if="$profileStore.name"
             class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
             <div class="flex w-[calc(100vw-230px)]">
-                <img class="max-w-[120px] rounded-full" :src="$profileStore.image">
+                <!-- <img class="max-w-[120px] rounded-full" :src="$profileStore.image"> -->
+                <NuxtImg class="max-w-[120px] rounded-full" :src="$profileStore.image" width="120" height="120"
+                    alt="Profile Image" loading="lazy" />
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
                         {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
@@ -83,7 +85,27 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
+    // console.log('return who things that profilestore returnning ');
+    console.log('return who things that profilestore returning:', {
+        id: $profileStore.id,
+        name: $profileStore.name,
+        username: $profileStore.username,
+        image: $profileStore.image,
+        bio: $profileStore.bio,
+        posts: $profileStore.posts,
+        allLikes: $profileStore.allLikes
+    });
     console.log('🧩 user ID:', $userStore.id)
+    // await $userStore.getProfile($userStore.id)
+    console.log('🧩 userStore profile:', {
+        id: $userStore.id,
+        name: $userStore.name,
+        username: $userStore.username,
+        image: $userStore.image,
+        bio: $userStore.bio,
+        posts: $userStore.posts,
+        allLikes: $userStore.allLikes
+    })
 
 })
 

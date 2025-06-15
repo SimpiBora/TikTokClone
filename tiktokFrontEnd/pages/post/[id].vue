@@ -98,12 +98,13 @@
                     No comments...
                 </div>
 
-                <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
+                <!-- <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
                     class="flex items-center justify-between px-8 mt-4">
                     <div class="flex items-center relative w-full">
                         <NuxtLink :to="`/profile/${comment.user.id}`">
                             <img class="absolute top-0 rounded-full lg:mx-0 mx-auto" width="40"
                                 :src="comment.user.image">
+                                
                         </NuxtLink>
                         <div class="ml-14 pt-0.5 w-full">
                             <div class="text-[18px] font-semibold flex items-center justify-between">
@@ -117,7 +118,31 @@
                             </div>
                         </div>
                     </div>
+                </div> -->
+
+                <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
+                    class="flex items-center justify-between px-8 mt-4">
+                    <div class="flex items-center relative w-full">
+                        <NuxtLink :to="`/profile/${comment.user.id}`">
+                            <NuxtImg class="absolute top-0 rounded-full lg:mx-0 mx-auto" width="40" height="40"
+                                :src="comment.user.image" alt="User profile image" format="webp" quality="75"
+                                loading="lazy" />
+                        </NuxtLink>
+
+                        <div class="ml-14 pt-0.5 w-full">
+                            <div class="text-[18px] font-semibold flex items-center justify-between">
+                                {{ comment.user.name }}
+                                <Icon v-if="$userStore.id === comment.user.id"
+                                    @click="deleteComment($generalStore.selectedPost, comment.id)"
+                                    class="cursor-pointer" name="material-symbols:delete-outline-sharp" size="25" />
+                            </div>
+                            <div class="text-[15px] font-light">
+                                {{ comment.text }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
 
                 <div class="mb-28" />
 
@@ -392,18 +417,20 @@ const addComment = async () => {
         comment.value = null
         document.getElementById('Comments').scroll({ top: 0, behavior: 'smooth' });
     } catch (error) {
+        console.log('error in addComment at posts id page ', error);
         console.log(error)
     }
 }
 
-const deleteComment = async (post, commentId) => {
-    let res = confirm('Are you sure you want to delete this comment?')
-    try {
-        if (res) {
-            await $userStore.deleteComment(post, commentId)
-        }
-    } catch (error) {
-        console.log(error)
-    }
-}
+// const deleteComment = async (post, commentId) => {
+//     let res = confirm('Are you sure you want to delete this comment?')
+//     try {
+//         if (res) {
+//             await $userStore.deleteComment(post, commentId)
+//         }
+//     } catch (error) {
+//         console.log(error)
+//     }
+// }
+
 </script>

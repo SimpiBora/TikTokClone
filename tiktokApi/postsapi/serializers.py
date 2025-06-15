@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from django.conf import settings
 from comments.serializers import CommentSerializer
 from like.serializers import LikeSerializer
@@ -21,26 +25,19 @@ class PostSerializer(serializers.ModelSerializer):
         depth = 2
         # fields = ["id", "text", "video", "created_at","likes", "user"]
 
-    # def get_user(self, obj):
-    #     request = self.context.get("request")
-    #     return {
-    #         "id": obj.user.id,
-    #         "name": obj.user.name,
-    #         "email": obj.user.email,
-    #         "image": request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}'",
-    #         # 'image': request.build_absolute_uri(obj.user.image.url) if request else f"{settings.MEDIA_URL}{obj.user.image.url}"
-    #     }
 
     def get_user(self, obj):
         request = self.context.get("request")
         user = obj.user
 
         image_url = None
-        if hasattr(user, "image") and user.image:
+        if hasattr(user, "image"):
+            print('what is inside user ', user)
             if request:
                 image_url = request.build_absolute_uri(user.image.url)
             else:
-                image_url = f"{settings.MEDIA_URL}{user.image.url}"
+                # image_url = f"{settings.MEDIA_URL}{user.image.url}"
+                image_url = user.image.url  # Use the relative URL directly
 
         return {
             "id": user.id,
@@ -65,17 +62,6 @@ class PostSerializer(serializers.ModelSerializer):
 
         return video_url
 
-    # def get_video(self, obj):
-
-    #     if obj.video:
-    #         print("obj is comming ---->>>", obj)
-    #         request = self.context.get("request")
-    #         return (
-    #             request.build_absolute_uri(obj.video.url)
-    #             if request
-    #             else f"{settings.MEDIA_URL}{obj.video.url}"
-    #         )
-    #     return None
 
     def get_created_at(self, obj):
         return obj.created_at.strftime("%b %d %Y")

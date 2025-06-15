@@ -1,3 +1,4 @@
+from urllib import request
 from django.conf import settings
 from comments.serializers import CommentSerializer
 from like.serializers import LikeSerializer
@@ -36,7 +37,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'name',
+            "name",
             "username",
             "email",
             "password",
@@ -93,15 +94,21 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email", "name", "bio", "image"]
 
-    def get_image(self, obj):
-        if obj.image:
-            request = self.context.get("request")
-            return (
-                request.build_absolute_uri(obj.image.url)
-                if request
-                else f"{settings.MEDIA_URL}{obj.image.url}"
-            )
-        return None
+    # def get_image(self, obj):
+    #     print('inside obj in userSerialzer ', obj)
+    #     print('obj image ', obj.image)
+    #     print('obj image url ', obj.image.url )
+    #     if obj.image:
+    #         request = self.context.get("request")
+    #         return (
+    #             request.build_absolute_uri(obj.image.url)
+    #             if request
+    #             else f"{settings.MEDIA_URL}{obj.image.url}"
+    #         )
+    #     return None
+
+    # context={"request": request}
+
 
 
 class UpdateUserImageSerializer(serializers.Serializer):

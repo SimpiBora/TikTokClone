@@ -1,8 +1,10 @@
-
 <template>
     <div :id="`PostMain-${post.id}`" class="flex border-b py-6">
         <div @click="isLoggedIn(post.user)" class="cursor-pointer">
-            <img class="rounded-full max-h-[60px]" width="60" :src="post.user.image" alt="User Image" />
+            <!-- <img class="rounded-full max-h-[60px]" width="60" :src="post.user.image" alt="User Image" /> -->
+            <NuxtImg class="rounded-full max-h-[60px]" width="60" :src="post.user.image" alt="User Image"
+                loading="lazy" />
+
         </div>
         <div class="pl-3 w-full px-4">
             <div class="flex items-center justify-between pb-0.5">
@@ -53,14 +55,31 @@
                             <span class="text-xs text-gray-800 font-semibold">{{ post.likes.length }}</span>
                         </div>
 
-                        <div class="pb-4 text-center">
-                            <div class="rounded-full bg-gray-200 p-2 cursor-pointer" role="button" tabindex="0">
+                        <!-- <div class="pb-4 text-center">
+                            <NuxtLink :to="{ name: 'post-id', params: { id: post.id } }"
+                                class="rounded-full bg-gray-200 p-2 cursor-pointer inline-block" role="button"
+                                tabindex="0" @click="!$userStore.id && ($generalStore.isLoginOpen = true)">
                                 <Icon name="bx:bxs-message-rounded-dots" size="25" />
-                            </div>
+                            </NuxtLink>
                             <span class="text-xs text-gray-800 font-semibold">
-                                {{ post.comments?.length || post.comment || 0 }}
+                                {{ post.comments?.length || post.comment || 0 }} Comment ---
                             </span>
+                        </div> -->
+
+                        <div class="pb-4 text-center">
+                            <NuxtLink :to="{ name: 'post-id', params: { id: post.id } }"
+                                class="inline-flex flex-col items-center cursor-pointer" role="button" tabindex="0"
+                                @click.prevent="!$userStore.id">
+                                <div class="rounded-full bg-gray-200 p-2">
+                                    <Icon name="bx:bxs-message-rounded-dots" size="25" />
+                                </div>
+                                <span class="text-xs text-gray-800 font-semibold mt-1">
+                                    {{ post.comments?.length || post.comment || 0 }}
+                                </span>
+                            </NuxtLink>
                         </div>
+
+
 
                         <div class="text-center">
                             <div class="rounded-full bg-gray-200 p-2 cursor-pointer" role="button" tabindex="0">
@@ -172,4 +191,5 @@ const displayPost = (post) => {
         // $generalStore.selectedPost = post
     }, 200)
 }
+
 </script>
