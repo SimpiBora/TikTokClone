@@ -15,7 +15,11 @@
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
-                        <div>Edit profile</div>
+                        <!-- <div>Edit profile</div> -->
+                         <div>
+                            <EditProfileText v-if="$generalStore.isEditProfileOpen" />
+                            <span v-else>Edit profile</span>
+                         </div>
                     </button>
 
                     <button v-else
