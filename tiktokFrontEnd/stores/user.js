@@ -93,6 +93,8 @@ export const useUserStore = defineStore('user', () => {
       console.log('✅ User successfully set in store:', {
         id: id.value,
         username: username.value,
+        bio: bio.value,
+        image: image.value,
         email: email.value,
       })
 
@@ -116,7 +118,15 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function createPost(data) {
-    return await $axios.post('/api/posts', data)
+    return await $axios.post('/api/postcreate/',
+      data,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      },)
   }
 
   async function deletePost(post) {
@@ -141,19 +151,34 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  async function deleteComment(post, commentId) {
-    const res = await $axios.delete(`/api/comments/${commentId}`, {
-      post_id: post.id,
-    })
 
-    if (res.status === 200) {
-      await updateComments(post)
+  async function deleteComment(post, commentId) {
+    try {
+      const res = await $axios.delete(
+        `/api/commentdelete/${commentId}/`,
+        {
+          data: { post_id: post.id },            // ✅ Payload goes here
+          withCredentials: true,
+          headers: {
+            'Authorization': `Token ${useCookie('csrftoken').value}`,
+            'X-CSRFToken': useCookie('csrftoken').value || ''
+          }
+        }
+      );
+
+      if (res.status === 200) {
+        await updateComments(post);
+      } else {
+        console.warn('Unexpected status:', res.status);
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
     }
   }
 
   async function updateComments(post) {
     const generalStore = useGeneralStore()
-    const res = await $axios.get(`/api/profiles/${post.user.id}`)
+    const res = await $axios.get(`/api/profile/${post.user.id}/`)
 
     for (let updatedPost of res.data.posts) {
       if (post.id === updatedPost.id) {

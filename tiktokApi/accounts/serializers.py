@@ -94,21 +94,80 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email", "name", "bio", "image"]
 
-    # def get_image(self, obj):
-    #     print('inside obj in userSerialzer ', obj)
-    #     print('obj image ', obj.image)
-    #     print('obj image url ', obj.image.url )
-    #     if obj.image:
-    #         request = self.context.get("request")
-    #         return (
-    #             request.build_absolute_uri(obj.image.url)
-    #             if request
-    #             else f"{settings.MEDIA_URL}{obj.image.url}"
-    #         )
-    #     return None
+        # def get_image(self, obj):
+        #     print('inside obj in userSerialzer ', obj)
+        #     print('obj image ', obj.image)
+        #     print('obj image url ', obj.image.url )
+        #     if obj.image:
+        #         request = self.context.get("request")
+        #         return (
+        #             request.build_absolute_uri(obj.image.url)
+        #             if request
+        #             else f"{settings.MEDIA_URL}{obj.image.url}"
+        #         )
+        #     return None
 
-    # context={"request": request}
+        # context={"request": request}
 
+        # def get_image(self, obj):
+        # request = self.context.get("request")
+
+        # print(f"[DEBUG] Entered get_image for user: {getattr(obj, 'id', 'Unknown')}")
+        # print(
+        #     f"[DEBUG] Has image attribute? {'Yes' if hasattr(obj, 'image') else 'No'}"
+        # )
+
+        # if hasattr(obj, "image") and obj.image:
+        #     print(f"[DEBUG] Image field is present: {obj.image}")
+        #     try:
+        #         image_url = obj.image.url
+        #         print(f"[DEBUG] Image URL resolved: {image_url}")
+        #         full_url = (
+        #             request.build_absolute_uri(image_url)
+        #             if request
+        #             else f"{settings.MEDIA_URL}{image_url}"
+        #         )
+        #         print(f"[DEBUG] Final image URL: {full_url}")
+        #         return full_url
+        #     except ValueError as e:
+        #         print(f"[ERROR] No image file for user {obj.id}: {e}")
+        #     except Exception as e:
+        #         print(f"[ERROR] Unexpected error for user {obj.id}: {e}")
+        # else:
+        #     print(f"[WARNING] User {obj.id} has no image or image is empty.")
+
+        # return None
+
+    def get_image(self, obj):
+        request = self.context.get("request")
+
+        print(f"[DEBUG] Entered get_image for user: {getattr(obj, 'id', 'Unknown')}")
+        print(
+            f"[DEBUG] Has image attribute? {'Yes' if hasattr(obj, 'image') else 'No'}"
+        )
+
+        if hasattr(obj, "image") and obj.image and hasattr(obj.image, "url"):
+            print(f"[DEBUG] Image field is present and has URL: {obj.image}")
+            try:
+                image_url = obj.image.url
+                print(f"[DEBUG] Image URL resolved: {image_url}")
+                full_url = (
+                    request.build_absolute_uri(image_url)
+                    if request
+                    else f"{settings.MEDIA_URL}{image_url}"
+                )
+                print(f"[DEBUG] Final image URL: {full_url}")
+                return full_url
+            except ValueError as e:
+                print(f"[ERROR] No image file for user {obj.id}: {e}")
+            except Exception as e:
+                print(f"[ERROR] Unexpected error for user {obj.id}: {e}")
+        else:
+            print(
+                f"[WARNING] User {obj.id} has no image or image has no associated file (empty or missing)."
+            )
+
+        return None
 
 
 class UpdateUserImageSerializer(serializers.Serializer):

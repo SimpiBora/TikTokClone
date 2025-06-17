@@ -4,26 +4,27 @@
         <div v-if="$generalStore.selectedPost" class="lg:w-[calc(100%-540px)] h-full relative">
             <NuxtLink :href="$generalStore.isBackUrl"
                 class="absolute z-20 m-5 rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                <Icon name="material-symbols:close" color="#FFFFFF" size="27" />
+                <Icon name="material-symbols:close" color="#FFFFFF" size="27" /> Go Back
             </NuxtLink>
 
             <div v-if="($generalStore.ids.length > 1)">
                 <button :disabled="!isLoaded" @click="loopThroughPostsUp()"
                     class="absolute z-20 right-4 top-4 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                    <Icon name="mdi:chevron-up" size="30" color="#FFFFFF" />
+                    <Icon name="mdi:chevron-up" size="30" color="#FFFFFF" /> Up Here
                 </button>
 
                 <button :disabled="!isLoaded" @click="loopThroughPostsDown()"
                     class="absolute z-20 right-4 top-20 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                    <Icon name="mdi:chevron-down" size="30" color="#FFFFFF" />
+                    <Icon name="mdi:chevron-down" size="30" color="#FFFFFF" /> Down Here
                 </button>
             </div>
 
             <img class="absolute top-[18px] left-[70px] rounded-full lg:mx-0 mx-auto" width="45"
                 src="~/assets/images/tiktok-logo-small.png">
 
-            <!-- <video v-if="$generalStore.selectedPost.video" class="absolute object-cover w-full my-auto z-[-1] h-screen"
-                :src="$generalStore.selectedPost.video" /> -->
+            <!-- is this mendetory or not checkout  -->
+            <video v-if="$generalStore.selectedPost.video" class="absolute object-cover w-full my-auto z-[-1] h-screen"
+                :src="$generalStore.selectedPost.video" />
 
             <div v-if="!isLoaded"
                 class="flex items-center justify-center bg-black bg-opacity-70 h-screen lg:min-w-[480px]">
@@ -44,12 +45,12 @@
             <div class="flex items-center justify-between px-8">
                 <div class="flex items-center">
                     <NuxtLink :href="`/profile/${$generalStore.selectedPost.user.id}`">
-                        <img class="rounded-full lg:mx-0 mx-auto" width="40"
-                            :src="$generalStore.selectedPost.user.image">
+                        <NuxtImg class="rounded-full lg:mx-0 mx-auto" width="40"
+                            :src="$generalStore.selectedPost.user?.image" alt="Image Not Found" loading="lazy" />
                     </NuxtLink>
                     <div class="ml-3 pt-0.5">
                         <div class="text-[17px] font-semibold">
-                            {{ $generalStore.allLowerCaseNoCaps($generalStore.selectedPost.user.name) }}
+                            {{ $generalStore.allLowerCaseNoCaps($generalStore.selectedPost.user.username) }}
                         </div>
                         <div class="text-[13px] -mt-5 font-light">
                             {{ $generalStore.selectedPost.user.name }}
@@ -98,28 +99,6 @@
                     No comments...
                 </div>
 
-                <!-- <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
-                    class="flex items-center justify-between px-8 mt-4">
-                    <div class="flex items-center relative w-full">
-                        <NuxtLink :to="`/profile/${comment.user.id}`">
-                            <img class="absolute top-0 rounded-full lg:mx-0 mx-auto" width="40"
-                                :src="comment.user.image">
-                                
-                        </NuxtLink>
-                        <div class="ml-14 pt-0.5 w-full">
-                            <div class="text-[18px] font-semibold flex items-center justify-between">
-                                {{ comment.user.name }}
-                                <Icon v-if="$userStore.id === comment.user.id"
-                                    @click="deleteComment($generalStore.selectedPost, comment.id)"
-                                    class="cursor-pointer" name="material-symbols:delete-outline-sharp" size="25" />
-                            </div>
-                            <div class="text-[15px] font-light">
-                                {{ comment.text }}
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
-
                 <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
                     class="flex items-center justify-between px-8 mt-4">
                     <div class="flex items-center relative w-full">
@@ -132,9 +111,13 @@
                         <div class="ml-14 pt-0.5 w-full">
                             <div class="text-[18px] font-semibold flex items-center justify-between">
                                 {{ comment.user.name }}
-                                <Icon v-if="$userStore.id === comment.user.id"
+                                <!-- <Icon v-if="$userStore.id === comment.user.id"
                                     @click="deleteComment($generalStore.selectedPost, comment.id)"
+                                    class="cursor-pointer" name="material-symbols:delete-outline-sharp" size="25" /> -->
+                                <Icon v-if="$userStore.id === comment.user.id"
+                                    @click="$userStore.deleteComment($generalStore.selectedPost, comment.id)"
                                     class="cursor-pointer" name="material-symbols:delete-outline-sharp" size="25" />
+
                             </div>
                             <div class="text-[15px] font-light">
                                 {{ comment.text }}
@@ -188,8 +171,16 @@ onMounted(async () => {
             router.push('/')
         } else {
             // $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id)
-            // $generalStore.isBackUrl =  I WANT ONE STEP PREVIOUS POST URL
+            console.log('is this back url rightn ', $generalStore.isBackUrl);
+            console.log(JSON.stringify($generalStore.selectedPost.user, null, 2));
+
             $generalStore.isBackUrl = getBackUrl(route.params.id)
+            // if (window.history.length > 1) {
+            //     router.back()
+            // } else {
+            //     router.go(1)
+            // }
+
             console.log('isBackUrl is ', $generalStore.isBackUrl)
         }
     } catch (error) {
@@ -240,41 +231,6 @@ watch(() => isLoaded.value, () => {
     }
 })
 
-// const loopThroughPostsDown = () => {
-//     setTimeout(() => {
-//         // let idArrayReversed = $generalStore.ids.reverse()
-//         let idArrayReversed = [...$generalStore.ids].reverse()
-
-//         let isBreak = false
-//         // onBeforeUnmount(() => {
-//         //   video.value.pause()
-//         //   video.value.currentTime = 0
-//         //   video.value.src = ''
-//         // })
-//         onBeforeUnmount(() => {
-//             if (video.value) {
-//                 video.value.pause()
-//                 video.value.currentTime = 0
-//                 video.value.src = ''
-//             }
-//         })
-
-//         for (let i = 0; i < idArrayReversed.length; i++) {
-//             const id = idArrayReversed[i];
-//             if (id < route.params.id) {
-//                 // router.push(`/post/${id}`)
-//                 router.push({ name: 'post-id', params: { id: id } })
-//                 isBreak = true
-//                 return
-//             }
-//         }
-
-//         if (!isBreak) {
-//             // router.push(`/ post / ${idArrayReversed[0]} `)
-//             route.push({ name: 'post-id', params: { id: idArrayReversed[0] } })
-//         }
-//     }, 300)
-// }
 
 const loopThroughPostsDown = () => {
     setTimeout(() => {
@@ -329,28 +285,6 @@ const loopThroughPostsUp = () => {
         }
     }, 300);
 };
-
-
-// const loopThroughPostsUp = () => {
-//     setTimeout(() => {
-//         let isBreak = false
-
-//         for (let i = 0; i < $generalStore.ids.length; i++) {
-//             const id = $generalStore.ids[i];
-//             if (id > route.params.id) {
-//                 // router.push(`/ post / ${id} `)
-//                 route.push({ name: 'post-id', params: { id: id } })
-//                 isBreak = true
-//                 return
-//             }
-//         }
-
-//         if (!isBreak) {
-//             // router.push(`/ post / ${$generalStore.ids[0]} `)
-//             route.push({ name: 'post-id', params: { id: $generalStore.ids[0] } })
-//         }
-//     }, 300)
-// }
 
 const isLiked = computed(() => {
     let res = $generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)

@@ -68,14 +68,11 @@ const router = useRouter()
 
 let showMenu = ref(false)
 
-// onMounted(() => {
-//     document.addEventListener('mouseup', function (e) {
-//         let popupMenu = document.getElementById('PopupMenu');
-//         if (!popupMenu.contains(e.target)) {
-//             showMenu.value = false
-//         }
-//     });
-// })
+// console.log(JSON.stringify(generalStore.selectedPost.user, null, 2));
+// console.log('user store checking ', JSON.stringify($userStore, null, 2));
+console.log('user store checking ', $userStore.id, $userStore.image);
+
+
 
 onMounted(() => {
     const handler = (e) => {

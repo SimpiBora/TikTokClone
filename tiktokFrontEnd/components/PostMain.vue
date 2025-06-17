@@ -55,17 +55,6 @@
                             <span class="text-xs text-gray-800 font-semibold">{{ post.likes.length }}</span>
                         </div>
 
-                        <!-- <div class="pb-4 text-center">
-                            <NuxtLink :to="{ name: 'post-id', params: { id: post.id } }"
-                                class="rounded-full bg-gray-200 p-2 cursor-pointer inline-block" role="button"
-                                tabindex="0" @click="!$userStore.id && ($generalStore.isLoginOpen = true)">
-                                <Icon name="bx:bxs-message-rounded-dots" size="25" />
-                            </NuxtLink>
-                            <span class="text-xs text-gray-800 font-semibold">
-                                {{ post.comments?.length || post.comment || 0 }} Comment ---
-                            </span>
-                        </div> -->
-
                         <div class="pb-4 text-center">
                             <NuxtLink :to="{ name: 'post-id', params: { id: post.id } }"
                                 class="inline-flex flex-col items-center cursor-pointer" role="button" tabindex="0"

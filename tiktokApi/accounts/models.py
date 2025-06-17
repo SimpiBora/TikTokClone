@@ -52,7 +52,7 @@ class User(AbstractUser):
         null=True,
         help_text="This Field is not Required",
     )  # Make username optional
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, help_text='this field is required')
 
     # Custom manager
     objects = CustomUserManager()

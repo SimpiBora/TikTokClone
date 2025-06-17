@@ -8,9 +8,9 @@
                     alt="Profile Image" loading="lazy" />
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
+                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
                     </div>
-                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div> -- name
+                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div>
 
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">

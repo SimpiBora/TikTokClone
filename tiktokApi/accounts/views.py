@@ -1,3 +1,4 @@
+from multiprocessing import context
 import re
 import stat
 from django.conf import settings
@@ -225,7 +226,7 @@ class LoggedInUserViewSet(ViewSet):
             print(f"   {key}: {request.session.get(key)}")
 
         # Serialize and prepare response
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         csrf_token = get_token(request)
         session_id = request.COOKIES.get("sessionid", None)
 
@@ -274,7 +275,7 @@ class ProfileViewSet(ViewSet):
             post_serializer = PostSerializer(
                 posts, many=True, context={"request": request}
             )
-            user_serializer = UserSerializer(user)
+            user_serializer = UserSerializer(user, context={"request": request})
 
             return Response(
                 {
@@ -285,8 +286,6 @@ class ProfileViewSet(ViewSet):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class LogoutViewSet(ViewSet):
@@ -413,37 +412,37 @@ class PostCreateView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PostDetailView(APIView):
-    """
-    API to retrieve a specific post and related posts by the same user.
-    """
+# class PostDetailView(APIView):
+#     """
+#     API to retrieve a specific post and related posts by the same user.
+#     """
 
-    def get(self, request, id):
-        try:
-            post = get_object_or_404(Post, id=id)
-            related_posts = Post.objects.filter(user=post.user).values_list(
-                "id", flat=True
-            )
+#     def get(self, request, id):
+#         try:
+#             post = get_object_or_404(Post, id=id)
+#             related_posts = Post.objects.filter(user=post.user).values_list(
+#                 "id", flat=True
+#             )
 
-            # post_serializer = AllPostsSerializer([post], many=True)
-            post_serializer = PostSerializer(
-                [post], many=True, context={"request": request}
-            )
-            # return Response({
-            #     'post': post_serializer.data,
-            #     'ids': list(related_posts)
-            # }, status=status.HTTP_200_OK)
+#             # post_serializer = AllPostsSerializer([post], many=True)
+#             post_serializer = PostSerializer(
+#                 [post], many=True, context={"request": request}
+#             )
+#             # return Response({
+#             #     'post': post_serializer.data,
+#             #     'ids': list(related_posts)
+#             # }, status=status.HTTP_200_OK)
 
-            return Response(
-                {
-                    # post_serializer.data,
-                    "post": post_serializer.data,
-                    "ids": list(related_posts),
-                },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response(
+#                 {
+#                     # post_serializer.data,
+#                     "post": post_serializer.data,
+#                     "ids": list(related_posts),
+#                 },
+#                 status=status.HTTP_200_OK,
+#             )
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostDeleteView(APIView):
@@ -480,8 +479,12 @@ class GetRandomUsersViewSet(ViewSet):
             following_users = User.objects.order_by("?")[:10]
 
             # Serialize the data
-            suggested_serializer = UserSerializer(suggested_users, many=True)
-            following_serializer = UserSerializer(following_users, many=True)
+            suggested_serializer = UserSerializer(
+                suggested_users, many=True, context={"request": request}
+            )
+            following_serializer = UserSerializer(
+                following_users, many=True, context={"request": request}
+            )
 
             return Response(
                 {

@@ -22,6 +22,13 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from .models import Comment, Post
 from .serializers import CommentSerializer
 from rest_framework.decorators import action
+from rest_framework.viewsets import ViewSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Comment
+from .serializers import CommentSerializer
 
 
 class CommentsViewSet(ViewSet):
@@ -80,36 +87,38 @@ class CommentsViewSet(ViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CommentDeleteView(APIView):
-    """
-    API to delete a comment.
-    """
-
+class CommentDeleteViewSet(ViewSet):
+    
     permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
-    def delete(self, request, id):
-        print("comment id is comming ", id)
-        try:
-            # Ensure comment exists
-            comment = get_object_or_404(Comment, id=id)
+    @extend_schema(
+        request=None,
+        parameters=[
+            OpenApiParameter(name="post_id", required=True, type=int, location="query"),
+            OpenApiParameter(name="comment", required=True, type=str, location="query"),
+        ],
+        responses={201: CommentSerializer},
+        tags=["Comments"],
+    )
 
-            # Check if the requesting user is the comment owner (optional)
-            if request.user != comment.user:
-                return Response(
-                    {"error": "Permission denied"}, status=HTTP_400_BAD_REQUEST
-                )
+    def destroy(self, request, pk=None):
+        # Retrieve the comment or return 404
+        comment = get_object_or_404(Comment, pk=pk)
+        # Enforce object-level permission
+        self.check_object_permissions(request, comment)
 
-            # Prepare comment data for response before deletion
-            comment_data = {
-                "id": comment.id,
-                "post_id": comment.post_id,
-                "user_id": comment.user_id,
-                "text": comment.text,
-            }
-            comment.delete()
-
+        if request.user != comment.user:
             return Response(
-                {"comment": comment_data, "success": "OK"}, status=HTTP_200_OK
+                {"error": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN
             )
-        except Exception as e:
-            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
+
+        # Serialize the comment before deletion (optional)
+        serializer = CommentSerializer(comment)
+
+        comment.delete()
+        return Response(
+            {"comment": serializer.data, "success": "OK"},
+            status=status.HTTP_200_OK
+        )
