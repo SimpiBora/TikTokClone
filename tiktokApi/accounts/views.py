@@ -13,7 +13,7 @@ from django.middleware.csrf import get_token
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from requests import session
+from requests import get, session
 from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
@@ -36,6 +36,7 @@ from .serializers import (
 )
 from rest_framework.viewsets import ViewSet
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
@@ -56,8 +57,10 @@ from drf_spectacular.utils import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
+from django.shortcuts import get_object_or_404
 
-from .services import FileService
+from core.services import ImageFileService
+from rest_framework.decorators import action
 
 # rewrite this code to use the CSRF token in the header using viewsets
 
@@ -226,7 +229,7 @@ class LoggedInUserViewSet(ViewSet):
             print(f"   {key}: {request.session.get(key)}")
 
         # Serialize and prepare response
-        serializer = UserSerializer(request.user, context={'request': request})
+        serializer = UserSerializer(request.user, context={"request": request})
         csrf_token = get_token(request)
         session_id = request.COOKIES.get("sessionid", None)
 
@@ -246,9 +249,6 @@ class LoggedInUserViewSet(ViewSet):
         response.headers["X-CSRFToken"] = csrf_token
 
         return response
-
-
-from django.shortcuts import get_object_or_404
 
 
 class ProfileViewSet(ViewSet):
@@ -308,76 +308,84 @@ class LogoutViewSet(ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UpdateUserImage(APIView):
-    """
-    API to update user image with validation and cropping dimensions.
-    """
+class Update(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        print("Received data:", request.data)  # Debugging
-        # Check if the file is being sent correctly
+    @extend_schema(
+        responses={200: UpdateUserImageSerializer},
+        tags=["accounts"],
+        description="Update user profile image with cropping data.",
+    )
+    @action(detail=False, methods=["post"])
+    def user_image(self, request):
+        print("Content-Type:", request.content_type)
+        print("Received data:", request.data)
         print("Files:", request.FILES)
 
+        # ✅ Let DRF handle merging
         serializer = UpdateUserImageSerializer(data=request.data)
+
         if not serializer.is_valid():
-            print("Validation errors:", serializer.errors)  # Debugging
+            print("Validation errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if not all(key in request.data for key in ["height", "width", "top", "left"]):
-            return Response(
-                {"error": "The dimensions are incomplete"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         try:
-            user = request.user
-            print("user for update image  ")
-            # Assuming the service handles image updates
-            FileService.update_image(user, request.data)
-            user.save()
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
+            ImageFileService.update_image(request.user, serializer.validated_data)
+            return Response(
+                {
+                    "success": "OK",
+                    "image": request.build_absolute_uri(request.user.image.url),
+                },
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# get_object_or_404
-# import get_object_or_404
+class UpdateViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=UserSerializer,
+        responses={200: UserSerializer},
+        tags=["accounts"],
+        description="Update user's profile name and bio.",
+    )
+    @action(detail=False, methods=["patch"])
+    def profile(self, request):
+        """
+        Patch the authenticated user's name and bio.
+        """
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": "OK"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class GetUser(APIView):
+# class UpdateUser(APIView):
 #     """
-#     API to get details of a user by ID.
+#     API to update the logged-in user's name and bio.
 #     """
 
-#     def get(self, request, id):
+#     def patch(self, request):
+#         serializer = UserSerializer(data=request.data, partial=True)
+#         if not serializer.is_valid():
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 #         try:
-#             user = get_object_or_404(User, id=id)
-#             serializer = UserSerializer(user, context={"request": request})
-#             return Response(
-#                 {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
-#             )
+#             user = request.user
+#             user.name = request.data.get("name", user.name)
+#             user.bio = request.data.get("bio", user.bio)
+#             user.save()
+#             return Response({"success": "OK"}, status=status.HTTP_200_OK)
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UpdateUser(APIView):
-    """
-    API to update the logged-in user's name and bio.
-    """
-
-    def patch(self, request):
-        serializer = UserSerializer(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = request.user
-            user.name = request.data.get("name", user.name)
-            user.bio = request.data.get("bio", user.bio)
-            user.save()
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostCreateView(APIView):
@@ -410,39 +418,6 @@ class PostCreateView(APIView):
             return Response({"success": "OK"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class PostDetailView(APIView):
-#     """
-#     API to retrieve a specific post and related posts by the same user.
-#     """
-
-#     def get(self, request, id):
-#         try:
-#             post = get_object_or_404(Post, id=id)
-#             related_posts = Post.objects.filter(user=post.user).values_list(
-#                 "id", flat=True
-#             )
-
-#             # post_serializer = AllPostsSerializer([post], many=True)
-#             post_serializer = PostSerializer(
-#                 [post], many=True, context={"request": request}
-#             )
-#             # return Response({
-#             #     'post': post_serializer.data,
-#             #     'ids': list(related_posts)
-#             # }, status=status.HTTP_200_OK)
-
-#             return Response(
-#                 {
-#                     # post_serializer.data,
-#                     "post": post_serializer.data,
-#                     "ids": list(related_posts),
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostDeleteView(APIView):

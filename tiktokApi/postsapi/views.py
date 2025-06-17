@@ -7,7 +7,8 @@ from .models import Post
 from .serializers import PostSerializer
 from django.shortcuts import get_object_or_404
 from core.services import FileService  # if you have this service
-from rest_framework.decorators import action
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class HomeViewSet(ViewSet):
@@ -63,9 +64,12 @@ class PostDetailViewSets(ViewSet):
 
 
 class PostCreateViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     """
     ViewSet to handle post creation with a video.
     """
+
     @extend_schema(
         request=PostSerializer,
         responses={200: PostSerializer},
@@ -80,14 +84,14 @@ class PostCreateViewSet(ViewSet):
         video = request.FILES.get("video")
 
         if not video or not video.name.endswith(".mp4"):
-            print('video is not there ', video)
+            print("video is not there ", video)
             return Response(
                 {"error": "The video field is required and must be a valid MP4 file."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if "text" not in data:
-            print('Text is not there ', text)
+            print("Text is not there ", data)
             return Response(
                 {"error": "The text field is required."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -95,14 +99,35 @@ class PostCreateViewSet(ViewSet):
 
         try:
             post = Post(user=request.user, text=data["text"])
-            print('post is text and user there ', post)
+            print("post is text and user there ", post)
             post = FileService.add_video(post, video)
-            print('post fileser.add video ', video)
+            print("post fileser.add video ", video)
             post.save()
 
             return Response({"success": "OK"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class PostDeleteViewSet(ViewSet):
-    pass 
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=PostSerializer,
+        responses={200: PostSerializer},
+        tags=["Posts"],
+        summary="create post",
+        description="This endpoint allows you to create a new post.",
+    )
+    def destroy(self, request, pk=None):
+        user = request.user
+        try:
+            post = get_object_or_404(Post, id=pk, user=user)
+            post.delete()
+            return Response(
+                {"success": "Post deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

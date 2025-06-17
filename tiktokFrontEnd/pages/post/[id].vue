@@ -332,18 +332,59 @@ const unlikePost = async () => {
     }
 }
 
+// main one 
+// const deletePost = async () => {
+//     let res = confirm('Are you sure you want to delete this post?')
+//     try {
+//         if (res) {
+//             await $userStore.deletePost($generalStore.selectedPost)
+//             await $profileStore.getProfile($userStore.id)
+//             router.push(`/ profile / ${$userStore.id} `)
+//         }
+//     } catch (error) {
+//         console.log(error)
+//     }
+// }
+//  new one 
+
 const deletePost = async () => {
-    let res = confirm('Are you sure you want to delete this post?')
+    const confirmed = confirm('Are you sure you want to delete this post?')
     try {
-        if (res) {
+        if (confirmed) {
             await $userStore.deletePost($generalStore.selectedPost)
             await $profileStore.getProfile($userStore.id)
-            router.push(`/ profile / ${$userStore.id} `)
+
+            // Debugging: Log full profile
+            // console.log('Full profile:', $profileStore.getProfile($userStore.id))
+            let res = await $profileStore.getProfile($userStore.id)
+            console.log('Profile after deletion:', res)
+
+            // Attempt to get posts from different possible keys
+            // const profile = $profileStore.getProfile($userStore.id) || {}
+            // const posts = profile.posts || profile.user_posts || profile.videos || []
+
+            console.log('Extracted posts:', res.posts)
+            // console.log('Posts length is:', posts.length)
+            // console.log('User ID is:', $userStore.id)
+
+            const posts = res.posts || []
+            console.log('posts after deletion:', posts);
+
+            // Redirect based on post count
+            if (posts.length === 0) {
+                router.push('/')
+            } else if (posts.length === 1) {
+                router.push(`/post/${posts[0].id}`)
+            } else {
+                router.push(`/profile/${$userStore.id}`)
+            }
         }
     } catch (error) {
-        console.log(error)
+        console.error('Delete post error:', error)
     }
 }
+
+
 
 const addComment = async () => {
     try {
