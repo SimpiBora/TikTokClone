@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractUser
-
+from core.models import AutoUpdate
 
 class CustomUserManager(BaseUserManager):
     """
@@ -37,7 +37,7 @@ class CustomUserManager(BaseUserManager):
 #         abstract = True
 
 
-class User(AbstractUser):
+class User(AbstractUser, AutoUpdate):
     """
     Custom User model extending AbstractUser.
     """

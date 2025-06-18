@@ -87,7 +87,7 @@
                         <Icon name="bx:bxs-message-rounded-dots" size="25" />
                     </div>
                     <span class="text-xs pl-2 text-gray-800 font-semibold">{{ $generalStore.selectedPost.comments.length
-                        || $generalStore.selectedPost.comments || 0 }}</span>
+                        || 0 }}</span>
                 </div>
             </div>
 

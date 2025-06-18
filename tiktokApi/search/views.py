@@ -1,21 +1,38 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from accounts.serializers import UserSerializer
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import AllowAny
+from django.core.cache import cache
+from django.db.models import Q
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 User = get_user_model()
 
 
-class SearchUserAPIView(APIView):
-    permission_classes = [AllowAny]
+class UserSearchViewSet(ViewSet):
+    @extend_schema(
+        responses={200: UserSerializer},
+        tags=["Search"],
+        description="Search for users by username or name.",
+    )
+    def list(self, request):
+        query = request.GET.get("q", "").strip().lower()
 
-    def get(self, request):
-        query = request.query_params.get('q', '').strip()
         if not query:
-            return Response({"users": []}, status=status.HTTP_200_OK)
+            return Response({"detail": "No record found."}, status=status.HTTP_200_OK)
 
-        users = User.objects.filter(name__icontains=query)[:10]
-        data = [{"id": user.id, "name": user.name,
-                 "image": user.image.url if user.image else None} for user in users]
-        return Response({"users": data}, status=status.HTTP_200_OK)
+        cache_key = f"user_search:{query}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+
+        users = User.objects.filter(
+            Q(username__icontains=query) | Q(name__icontains=query)
+        ).order_by("-created_at")[:10]
+
+        serializer = UserSerializer(users, many=True, context={"request": request})
+        cache.set(cache_key, serializer.data, timeout=60 * 15)  # Cache for 15 minutes
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
