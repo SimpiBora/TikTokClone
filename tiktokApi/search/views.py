@@ -11,6 +11,10 @@ User = get_user_model()
 
 
 class UserSearchViewSet(ViewSet):
+    """
+    A viewset for searching users.
+    """
+
     @extend_schema(
         responses={200: UserSerializer},
         tags=["Search"],

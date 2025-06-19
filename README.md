@@ -35,6 +35,8 @@ Password (again): admin1
 ## generate fake posts with videos
 python manage.py generate_posts
 
+## generate fake user with videos
+python manage.py create_fake_users
 
 
 <!-- I CREATE MODELS
