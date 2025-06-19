@@ -170,12 +170,19 @@ class UserSerializer(serializers.ModelSerializer):
         return None
 
 
+# class UpdateUserImageSerializer(serializers.Serializer):
+#     height = serializers.FloatField()
+#     width = serializers.FloatField()
+#     top = serializers.FloatField()
+#     left = serializers.FloatField()
+#     image = serializers.ImageField()
+
 class UpdateUserImageSerializer(serializers.Serializer):
-    height = serializers.FloatField()
-    width = serializers.FloatField()
-    top = serializers.FloatField()
-    left = serializers.FloatField()
-    image = serializers.ImageField()
+    image = serializers.ImageField(required=True)
+    height = serializers.FloatField(required=True)
+    width = serializers.FloatField(required=True)
+    top = serializers.FloatField(required=True)
+    left = serializers.FloatField(required=True)
 
     def validate(self, data):
         if data["height"] <= 0 or data["width"] <= 0:

@@ -1,4 +1,4 @@
-<template>
+1ml-5 w-full<template>
     <MainLayout>
         <div v-if="$profileStore.name"
             class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">

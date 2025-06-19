@@ -57,7 +57,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-
   async function register(name, userName, userEmail, password, confirmPassword) {
     await $axios.post('/api/registeruser/', {
       name: name,
@@ -107,14 +106,30 @@ export const useUserStore = defineStore('user', () => {
 
 
   async function updateUserImage(data) {
-    return await $axios.post('/api/update-user-image', data)
+    return await $axios.post('/api/update/user_image/', data,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      }
+    )
   }
 
   async function updateUser(userName, userBio) {
-    return await $axios.patch('/api/update-user', {
+    return await $axios.patch('/api/update/profile/', {
       username: userName,
       bio: userBio,
-    })
+    },
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      }
+    )
   }
 
   async function createPost(data) {
@@ -130,7 +145,13 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function deletePost(post) {
-    return await $axios.delete(`/api/posts/${post.id}`)
+    return await $axios.delete(`/api/postdelete/${post.id}/`, {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Token ${useCookie('csrftoken').value}`,
+        'X-CSRFToken': useCookie('csrftoken').value || ''
+      }
+    })
   }
 
   async function addComment(post, comment) {

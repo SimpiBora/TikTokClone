@@ -86,7 +86,8 @@
                     <div class="rounded-full bg-gray-200 p-2 cursor-pointer">
                         <Icon name="bx:bxs-message-rounded-dots" size="25" />
                     </div>
-                    <span class="text-xs pl-2 text-gray-800 font-semibold">43</span>
+                    <span class="text-xs pl-2 text-gray-800 font-semibold">{{ $generalStore.selectedPost.comments.length
+                        || 0 }}</span>
                 </div>
             </div>
 
@@ -155,7 +156,7 @@ const { $generalStore, $userStore, $profileStore } = useNuxtApp()
 const route = useRoute()
 const router = useRouter()
 
-// definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth' })
 
 let video = ref(null)
 let isLoaded = ref(false)
@@ -211,12 +212,6 @@ const getBackUrl = (id) => {
 }
 
 
-// onBeforeUnmount(() => {
-//     video.value.pause()
-//     video.value.currentTime = 0
-//     video.value.src = ''
-// })
-// MADE ME 
 onBeforeUnmount(() => {
     if (video.value) {
         video.value.pause()
@@ -332,16 +327,34 @@ const unlikePost = async () => {
     }
 }
 
+
 const deletePost = async () => {
-    let res = confirm('Are you sure you want to delete this post?')
+    const confirmed = confirm('Are you sure you want to delete this post?')
     try {
-        if (res) {
+        if (confirmed) {
             await $userStore.deletePost($generalStore.selectedPost)
             await $profileStore.getProfile($userStore.id)
-            router.push(`/ profile / ${$userStore.id} `)
+
+            let res = await $profileStore.getProfile($userStore.id)
+            console.log('Profile after deletion:', res)
+
+            console.log('Extracted posts:', res.posts)
+
+
+            const posts = res.posts || []
+            console.log('posts after deletion:', posts);
+
+            // Redirect based on post count
+            if (posts.length === 0) {
+                router.push('/')
+            } else if (posts.length === 1) {
+                router.push(`/post/${posts[0].id}`)
+            } else {
+                router.push(`/profile/${$userStore.id}`)
+            }
         }
     } catch (error) {
-        console.log(error)
+        console.error('Delete post error:', error)
     }
 }
 
@@ -356,15 +369,6 @@ const addComment = async () => {
     }
 }
 
-// const deleteComment = async (post, commentId) => {
-//     let res = confirm('Are you sure you want to delete this comment?')
-//     try {
-//         if (res) {
-//             await $userStore.deleteComment(post, commentId)
-//         }
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
+
 
 </script>
