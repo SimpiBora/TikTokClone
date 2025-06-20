@@ -36,7 +36,7 @@ class CustomCursorPagination(CursorPagination):
     page_size_query_param = "page_size"  # Allow client to specify page size
     max_page_size = 20  # Maximum page size allowed
     ordering = "id"  # Field for ordering (must be unique)
-    cursor_query_param = 'cursor'  # Query parameter for cursor
+    cursor_query_param = "cursor"  # Query parameter for cursor
 
     def get_paginated_response(self, data):
         return Response(
@@ -44,7 +44,8 @@ class CustomCursorPagination(CursorPagination):
                 "next": self.get_next_link(),  # URL for the next page
                 "previous": self.get_previous_link(),  # URL for the previous page
                 "page_size": len(data),  # Number of items in the current page
-                "has_next": self.get_next_link() is not None,  # True if there is a next page
+                "has_next": self.get_next_link()
+                is not None,  # True if there is a next page
                 # True if there is a previous page
                 "has_previous": self.get_previous_link() is not None,
                 "results": data,  # The paginated data

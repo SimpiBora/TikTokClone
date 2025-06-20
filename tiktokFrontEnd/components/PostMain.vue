@@ -1,7 +1,6 @@
 <template>
-    <div :id="`PostMain-${post.id}`" class="flex border-b py-6">
+    <div :id="`PostMain-${post.id}`" class="flex border-b py-6"> all posts are here
         <div @click="isLoggedIn(post.user)" class="cursor-pointer">
-            <!-- <img class="rounded-full max-h-[60px]" width="60" :src="post.user.image" alt="User Image" /> -->
             <NuxtImg class="rounded-full max-h-[60px]" width="60" :src="post.user.image" alt="User Image"
                 loading="lazy" />
 
@@ -67,8 +66,6 @@
                                 </span>
                             </NuxtLink>
                         </div>
-
-
 
                         <div class="text-center">
                             <div class="rounded-full bg-gray-200 p-2 cursor-pointer" role="button" tabindex="0">
