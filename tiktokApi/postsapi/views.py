@@ -9,29 +9,63 @@ from django.shortcuts import get_object_or_404
 from core.services import FileService  # if you have this service
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from pagination.custompagination import (
+    CustomCursorPagination,
+)  # Adjust the import path as necessary
+
+# class HomeViewSet(ViewSet):
+#     pagination_class = CustomCursorPagination
+
+#     def list(self, request):
+#         queryset = Post.objects.all().order_by('-created_at')  # Use ordering same as paginator
+#         paginator = self.pagination_class()
+#         page = paginator.paginate_queryset(queryset, request)
+#         serializer = PostSerializer(page, many=True, context={"request": request})
+#         return paginator.get_paginated_response(serializer.data)
 
 
 class HomeViewSet(ViewSet):
     @extend_schema(
-        request=PostSerializer,  # This links the serializer for the request body
-        responses={
-            200: PostSerializer,  # This links the serializer for the response
-        },  # Expected response will be the created category
+        request=PostSerializer,
+        responses={200: PostSerializer},
         tags=["Posts"],
-        summary="list all posts",
-        description="This endpoint allows you to list all posts.",
+        summary="List all posts with pagination",
+        description="This endpoint returns paginated posts.",
     )
     def list(self, request):
         try:
-            queryset = Post.objects.all()
+            queryset = Post.objects.all().order_by("-created_at")  # or 'id'
+            paginator = CustomCursorPagination()
+            paginated_qs = paginator.paginate_queryset(queryset, request)
             serializer = PostSerializer(
-                queryset, many=True, context={"request": request}
+                paginated_qs, many=True, context={"request": request}
             )
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
-            return Response(
-                {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class HomeViewSet(ViewSet):
+#     @extend_schema(
+#         request=PostSerializer,  # This links the serializer for the request body
+#         responses={
+#             200: PostSerializer,  # This links the serializer for the response
+#         },  # Expected response will be the created category
+#         tags=["Posts"],
+#         summary="list all posts",
+#         description="This endpoint allows you to list all posts.",
+#     )
+#     def list(self, request):
+#         try:
+#             queryset = Post.objects.all()
+#             serializer = PostSerializer(
+#                 queryset, many=True, context={"request": request}
+#             )
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response(
+#                 {"error is here ": str(e)}, status=status.HTTP_400_BAD_REQUEST
+#             )
 
 
 class PostDetailViewSets(ViewSet):
