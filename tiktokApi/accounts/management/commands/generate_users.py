@@ -30,7 +30,12 @@ class Command(BaseCommand):
 
         for _ in range(count):
             email = fake.unique.email()
-            username = fake.user_name()
+            # username = fake.user_name()
+            # username =
+            # i wnat admin_1, _2 like this
+            username = (
+                f"admin{_ + 1}"  # Generates usernames like admin_1, admin_2, etc.
+            )
             name = fake.name()
             password = "password123"  # 🔴 change this password if needed
 
