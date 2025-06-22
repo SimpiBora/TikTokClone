@@ -250,10 +250,10 @@ class LoggedInUserViewSet(ViewSet):
 
         return response
 
-
+# add pagination logic here 
 class ProfileViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    authentication_classes = [SessionAuthentication]  # Disable authentication for this route
+    permission_classes = [IsAuthenticated]  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
     """
@@ -366,77 +366,6 @@ class UpdateViewSet(ViewSet):
             return Response({"success": "OK"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class UpdateUser(APIView):
-#     """
-#     API to update the logged-in user's name and bio.
-#     """
-
-#     def patch(self, request):
-#         serializer = UserSerializer(data=request.data, partial=True)
-#         if not serializer.is_valid():
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             user = request.user
-#             user.name = request.data.get("name", user.name)
-#             user.bio = request.data.get("bio", user.bio)
-#             user.save()
-#             return Response({"success": "OK"}, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostCreateView(APIView):
-    """
-    API to create a new post with a video.
-    """
-
-    def post(self, request):
-        data = request.data
-        video = request.FILES.get("video")
-
-        if not video or not video.name.endswith(".mp4"):
-            return Response(
-                {"error": "The video field is required and must be a valid MP4 file."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if "text" not in data:
-            return Response(
-                {"error": "The text field is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            post = Post(user=request.user, text=data["text"])
-            # FileService to handle video uploads
-            post = FileService.add_video(post, video)
-            post.save()
-
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostDeleteView(APIView):
-    """
-    API to delete a specific post along with its associated video file.
-    """
-
-    def delete(self, request, id):
-        try:
-            post = get_object_or_404(Post, id=id)
-            if post.video and default_storage.exists(post.video.path):
-                # Delete the video file
-                default_storage.delete(post.video.path)
-            post.delete()
-
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class GetRandomUsersViewSet(ViewSet):
     @extend_schema(
