@@ -4,10 +4,10 @@
         <div v-if="$generalStore.selectedPost" class="lg:w-[calc(100%-540px)] h-full relative">
             <NuxtLink :href="$generalStore.isBackUrl"
                 class="absolute z-20 m-5 rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                <Icon name="material-symbols:close" color="#FFFFFF" size="27" /> Go Back
+                <Icon name="material-symbols:close" color="#FFFFFF" size="27" />
             </NuxtLink>
 
-            <div v-if="($generalStore.ids.length > 1)">
+            <!-- <div v-if="($generalStore.ids.length > 1)">
                 <button :disabled="!isLoaded" @click="loopThroughPostsUp()"
                     class="absolute z-20 right-4 top-4 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
                     <Icon name="mdi:chevron-up" size="30" color="#FFFFFF" /> Up Here
@@ -17,7 +17,22 @@
                     class="absolute z-20 right-4 top-20 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
                     <Icon name="mdi:chevron-down" size="30" color="#FFFFFF" /> Down Here
                 </button>
+            </div> -->
+
+            <div v-if="$generalStore.ids.length > 1">
+                <button v-if="canGoUp" :disabled="!isLoaded" @click="loopThroughPostsUp()"
+                    class="absolute z-20 right-4 top-4 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
+                    <Icon name="mdi:chevron-up" size="30" color="#FFFFFF" />
+                    <!-- <span class="ml-1">Up Here</span> -->
+                </button>
+
+                <button v-if="canGoDown" :disabled="!isLoaded" @click="loopThroughPostsDown()"
+                    class="absolute z-20 right-4 top-20 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
+                    <Icon name="mdi:chevron-down" size="30" color="#FFFFFF" />
+                    <!-- <span class="ml-1">Down Here</span> -->
+                </button>
             </div>
+
 
             <img class="absolute top-[18px] left-[70px] rounded-full lg:mx-0 mx-auto" width="45"
                 src="~/assets/images/tiktok-logo-small.png">
@@ -150,7 +165,7 @@
     </div>
 </template>
 
-<script setup>
+<!-- <script setup>
 const { $generalStore, $userStore, $profileStore } = useNuxtApp()
 
 const route = useRoute()
@@ -369,6 +384,161 @@ const addComment = async () => {
     }
 }
 
+</script> -->
 
 
+
+<script setup>
+const { $generalStore, $userStore, $profileStore } = useNuxtApp()
+
+const route = useRoute()
+const router = useRouter()
+
+definePageMeta({ middleware: 'auth' })
+
+let video = ref(null)
+let isLoaded = ref(false)
+let comment = ref(null)
+let inputFocused = ref(false)
+
+onMounted(async () => {
+    $generalStore.selectedPost = null
+    try {
+        await $generalStore.getPostById(route.params.id)
+        if (!$generalStore.selectedPost) {
+            router.push('/')
+        } else {
+            // $generalStore.isBackUrl = getBackUrl(route.params.id.toString())
+            $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id.toString())
+            console.log('isBackUrl is ', $generalStore.isBackUrl)
+        }
+    } catch (error) {
+        console.log('Error loading post:', error)
+        if (error?.response?.status === 400) {
+            router.push('/')
+        }
+    }
+
+    video.value?.addEventListener('loadeddata', () => {
+        setTimeout(() => {
+            isLoaded.value = true
+        }, 500)
+    })
+})
+
+onBeforeUnmount(() => {
+    destroyVideo()
+})
+
+const canGoUp = computed(() => {
+    const idArray = $generalStore.ids.map(i => i.toString())
+    const currentIndex = idArray.indexOf(route.params.id.toString())
+    return currentIndex > 0
+})
+
+const canGoDown = computed(() => {
+    const idArray = $generalStore.ids.map(i => i.toString())
+    const currentIndex = idArray.indexOf(route.params.id.toString())
+    return currentIndex < idArray.length - 1
+})
+
+
+watch(() => isLoaded.value, () => {
+    if (isLoaded.value) {
+        setTimeout(() => video.value?.play(), 500)
+    }
+})
+
+const getBackUrl = (id) => {
+    const idArray = $generalStore.ids.map(i => i.toString())
+    const index = idArray.indexOf(id.toString())
+    if (index > 0) {
+        return `/post/${idArray[index - 1]}`
+    } else {
+        return '/'
+    }
+}
+
+const destroyVideo = () => {
+    if (video.value) {
+        video.value.pause()
+        video.value.currentTime = 0
+        video.value.src = ''
+    }
+}
+
+const loopThroughPostsUp = () => {
+    const idArray = $generalStore.ids.map(i => i.toString())
+    const currentIndex = idArray.indexOf(route.params.id.toString())
+    if (currentIndex > 0) {
+        const nextId = idArray[currentIndex - 1]
+        destroyVideo()
+        router.push(`/post/${nextId}`)
+    }
+}
+
+const loopThroughPostsDown = () => {
+    const idArray = $generalStore.ids.map(i => i.toString())
+    const currentIndex = idArray.indexOf(route.params.id.toString())
+    if (currentIndex < idArray.length - 1) {
+        const nextId = idArray[currentIndex + 1]
+        destroyVideo()
+        router.push(`/post/${nextId}`)
+    }
+}
+
+const isLiked = computed(() => {
+    return !!$generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
+})
+
+const likePost = async () => {
+    try {
+        const res = $generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
+        if (res || !$generalStore.selectedPost || $generalStore.selectedPost.user.id === $userStore.id || $generalStore.selectedPost.likes.length >= 1000) {
+            return
+        }
+        await $userStore.likePost($generalStore.selectedPost, true)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const unlikePost = async () => {
+    try {
+        await $userStore.unlikePost($generalStore.selectedPost, true)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const deletePost = async () => {
+    const confirmed = confirm('Are you sure you want to delete this post?')
+    if (!confirmed) return
+
+    try {
+        await $userStore.deletePost($generalStore.selectedPost)
+        const res = await $profileStore.getProfile($userStore.id)
+        const posts = res.posts || []
+
+        if (posts.length === 0) {
+            router.push('/')
+        } else if (posts.length === 1) {
+            router.push(`/post/${posts[0].id}`)
+        } else {
+            router.push(`/profile/${$userStore.id}`)
+        }
+    } catch (error) {
+        console.error('Delete post error:', error)
+    }
+}
+
+const addComment = async () => {
+    try {
+        await $userStore.addComment($generalStore.selectedPost, comment.value)
+        comment.value = null
+        document.getElementById('Comments')?.scroll({ top: 0, behavior: 'smooth' })
+    } catch (error) {
+        console.log('error in addComment at posts id page ', error)
+    }
+}
 </script>

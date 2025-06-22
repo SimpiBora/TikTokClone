@@ -74,6 +74,7 @@ export const useGeneralStore = defineStore('general', () => {
 
   async function getAllUsersAndPosts() {
     const res = await $axios.get('/api/home/')
+    console.log('res.data: in getAllUsersAndPosts', res.data);
     posts.value = res.data
   }
 
