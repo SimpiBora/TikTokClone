@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <div :id="`PostMain-${post.id}`" class="flex border-b py-6">
 
         <div @click="isLoggedIn(post.user)" class="cursor-pointer">
@@ -90,10 +90,10 @@
             </div>
         </div>
     </div>
-</template>
+</template> -->
 
 
-<!-- <template>
+<template>
     <div :id="`PostMain-${post.id}`" class="flex border-b py-6">
         <div @click="isLoggedIn(post.user)" class="cursor-pointer">
             <img class="rounded-full max-h-[60px]" width="60" :src="post.user.image">
@@ -102,10 +102,10 @@
             <div class="flex items-center justify-between pb-0.5">
                 <button @click="isLoggedIn(post.user)">
                     <span class="font-bold hover:underline cursor-pointer">
-                        {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} original one
-                         <p v-if="post.user?.name">{{ allLowerCaseNoCaps(user.name) }}</p>
+                        <!-- {{ $generalStore.allLowerCaseNoCaps(post.user.name) }} original one -->
+                        <!-- <p v-if="post.user?.name">{{ allLowerCaseNoCaps(user.name) }}</p> -->
                         {{ $generalStore.allLowerCaseNoCaps(post.user?.name) }}
-                         <p>{{ user?.name ? allLowerCaseNoCaps(user.name) : '' }}</p>
+                        <!-- <p>{{ user?.name ? allLowerCaseNoCaps(user.name) : '' }}</p> -->
                     </span>
                     <span class="text-[13px] text-light text-gray-500 pl-1 cursor-pointer">
                         {{ post.user.name }}
@@ -160,7 +160,7 @@
             </div>
         </div>
     </div>
-</template> -->
+</template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'

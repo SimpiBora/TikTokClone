@@ -208,6 +208,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
 

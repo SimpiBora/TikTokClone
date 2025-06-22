@@ -165,7 +165,7 @@
     </div>
 </template>
 
-<script setup>
+<!-- <script setup>
 const { $generalStore, $userStore, $profileStore } = useNuxtApp()
 
 const route = useRoute()
@@ -384,11 +384,11 @@ const addComment = async () => {
     }
 }
 
-</script>
+</script> -->
 
 
 
-<!-- <script setup>
+<script setup>
 const { $generalStore, $userStore, $profileStore } = useNuxtApp()
 
 const route = useRoute()
@@ -541,4 +541,4 @@ const addComment = async () => {
         console.log('error in addComment at posts id page ', error)
     }
 }
-</script> -->
+</script>
