@@ -25,7 +25,8 @@ onMounted(async () => {
 <!-- pages/index.vue -->
 <template>
     <MainLayout>
-        <div class="pt-[80px] w-[calc(100%-90px)] max-w-[690px] mx-auto">
+        <!-- <div class="pt-[80px] w-[calc(100%-90px)] max-w-[690px] mx-auto"> -->
+            <div class="pt-[80px] w-[calc(100%-90px)] max-w-[690px]">
             <PostMain v-for="(post, index) in feedStore.items" :key="post.id" :post="post"
                 :isLastPost="index === feedStore.items.length - 1" />
 

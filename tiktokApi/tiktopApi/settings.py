@@ -242,9 +242,9 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": os.path.join(BASE_DIR, "cache"),  # Cache directory
-        "TIMEOUT": 300,  # Default timeout for cache (in seconds)
+        "TIMEOUT": 30000,  # Default timeout for cache (in seconds)
         "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Maximum number of cache entries
+            "MAX_ENTRIES": 10000,  # Maximum number of cache entries
             "CULL_FREQUENCY": 3,  # Cull a third of entries when limit is hit
         },
     }
