@@ -224,8 +224,16 @@ onBeforeUnmount(() => {
     }
 })
 
+// const isLiked = computed(() => {
+//     return post.value.likes.some((like) => like.user_id === $userStore.id)
+// })
+
 const isLiked = computed(() => {
-    return post.value.likes.some((like) => like.user_id === $userStore.id)
+    let res = post.value.likes.find(like => like.user_id === $userStore.id)
+    if (res) {
+        return true
+    }
+    return false
 })
 
 const likePost = async (post) => {
