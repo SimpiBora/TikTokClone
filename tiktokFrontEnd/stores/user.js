@@ -208,7 +208,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
 
@@ -222,62 +221,32 @@ export const useUserStore = defineStore('user', () => {
         'X-CSRFToken': useCookie('csrftoken').value || ''
       }
     })
-    console.log('res of like is ', res);
 
     const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
-    console.log('single post ', singlePost);
-
     singlePost?.likes?.push(res.data.like)
   }
 
   async function unlikePost(post, isPostPage) {
     const generalStore = useGeneralStore()
+
     const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
 
-    // ✅ Safely fallback to empty array
-    const deleteLike = (singlePost?.likes || []).find(like => like.user_id === id.value)
+    const deleteLike = singlePost.likes.find(like => like.user_id === id.value)
 
-    if (!deleteLike) {
-      console.warn("No like found to delete for this user.")
-      return
-    }
+    const res = await $axios.delete(`/api/likedelete/${deleteLike.id}/`,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      })
 
-    const res = await $axios.delete(`/api/likedelete/${deleteLike.id}/`, {
-      withCredentials: true,
-      headers: {
-        'Authorization': `Token ${useCookie('csrftoken').value}`,
-        'X-CSRFToken': useCookie('csrftoken').value || ''
-      }
-    })
-
-    const index = (singlePost?.likes || []).findIndex(like => like.id === res.data.like.id)
+    const index = singlePost.likes.findIndex(like => like.id === res.data.like.id)
     if (index !== -1) {
       singlePost.likes.splice(index, 1)
     }
   }
-
-
-  // async function unlikePost(post, isPostPage) {
-  //   const generalStore = useGeneralStore()
-
-  //   const singlePost = isPostPage ? post : generalStore.posts.find(p => p.id === post.id)
-
-  //   const deleteLike = singlePost.likes.find(like => like.user_id === id.value)
-
-  //   const res = await $axios.delete(`/api/likedelete/${deleteLike.id}/`,
-  //     {
-  //       withCredentials: true,
-  //       headers: {
-  //         'Authorization': `Token ${useCookie('csrftoken').value}`,
-  //         'X-CSRFToken': useCookie('csrftoken').value || ''
-  //       }
-  //     })
-
-  //   const index = singlePost.likes.findIndex(like => like.id === res.data.like.id)
-  //   if (index !== -1) {
-  //     singlePost.likes.splice(index, 1)
-  //   }
-  // }
 
 
   async function logout() {
