@@ -164,7 +164,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useRouter, useNuxtApp } from '#imports'
+// import { useRouter, useNuxtApp } from '#imports'
 import { useFeedStore } from '~/stores/loadMore'
 
 const feedStore = useFeedStore()
@@ -175,6 +175,8 @@ const props = defineProps({
 })
 
 const post = ref(props.post)
+console.log('inside post in postmain ', post);
+console.log('likes ', post.likes.value);
 const router = useRouter()
 const video = ref(null)
 
@@ -224,8 +226,16 @@ onBeforeUnmount(() => {
     }
 })
 
+// const isLiked = computed(() => {
+//     return post.value.likes.some((like) => like.user_id === $userStore.id)
+// })
+
 const isLiked = computed(() => {
-    return post.value.likes.some((like) => like.user_id === $userStore.id)
+    let res = post.value.likes.find(like => like.user_id === $userStore.id)
+    if (res) {
+        return true
+    }
+    return false
 })
 
 const likePost = async (post) => {
