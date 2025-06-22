@@ -15,9 +15,9 @@ user = get_user_model()
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True)
-    likes = LikeSerializer(many=True)
+    likes = LikeSerializer(many=True, read_only=True)
     video = serializers.SerializerMethodField()
-    created_at = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()    
 
     class Meta:
         model = Post
