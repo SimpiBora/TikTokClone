@@ -38,14 +38,6 @@ export function createCursorStore({ name, fetchFn }) {
             hasMore.value = true
         }
 
-        // return {
-        //     items,
-        //     loading,
-        //     nextCursor,
-        //     hasMore,
-        //     fetchItems,
-        //     reset,
-        // }
         return {
             items,
             loading,

@@ -7,18 +7,6 @@
                 <Icon name="material-symbols:close" color="#FFFFFF" size="27" />
             </NuxtLink>
 
-            <!-- <div v-if="($generalStore.ids.length > 1)">
-                <button :disabled="!isLoaded" @click="loopThroughPostsUp()"
-                    class="absolute z-20 right-4 top-4 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                    <Icon name="mdi:chevron-up" size="30" color="#FFFFFF" /> Up Here
-                </button>
-
-                <button :disabled="!isLoaded" @click="loopThroughPostsDown()"
-                    class="absolute z-20 right-4 top-20 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
-                    <Icon name="mdi:chevron-down" size="30" color="#FFFFFF" /> Down Here
-                </button>
-            </div> -->
-
             <div v-if="$generalStore.ids.length > 1">
                 <button v-if="canGoUp" :disabled="!isLoaded" @click="loopThroughPostsUp()"
                     class="absolute z-20 right-4 top-4 flex items-center justify-center rounded-full bg-gray-700 p-1.5 hover:bg-gray-800">
@@ -110,10 +98,12 @@
 
                 <div class="pt-2" />
 
-                <div v-if="($generalStore.selectedPost.comments.length < 1)"
+                <!-- <div v-if="($generalStore.selectedPost.comments.length < 1)" -->
+                <div v-if="($generalStore.selectedPost?.comments?.length < 1)">
                     class="text-center mt-6 text-xl text-gray-500">
                     No comments...
                 </div>
+
 
                 <div v-else v-for="comment in $generalStore.selectedPost.comments" :key="comment"
                     class="flex items-center justify-between px-8 mt-4">
@@ -165,229 +155,6 @@
     </div>
 </template>
 
-<!-- <script setup>
-const { $generalStore, $userStore, $profileStore } = useNuxtApp()
-
-const route = useRoute()
-const router = useRouter()
-
-definePageMeta({ middleware: 'auth' })
-
-let video = ref(null)
-let isLoaded = ref(false)
-let comment = ref(null)
-let inputFocused = ref(false)
-
-onMounted(async () => {
-    $generalStore.selectedPost = null
-    try {
-        await $generalStore.getPostById(route.params.id)
-        console.log('is id coming or not ', route.params.id)
-        if (!$generalStore.selectedPost) {
-            router.push('/')
-        } else {
-            // $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id)
-            console.log('is this back url rightn ', $generalStore.isBackUrl);
-            console.log(JSON.stringify($generalStore.selectedPost.user, null, 2));
-
-            $generalStore.isBackUrl = getBackUrl(route.params.id)
-            // if (window.history.length > 1) {
-            //     router.back()
-            // } else {
-            //     router.go(1)
-            // }
-
-            console.log('isBackUrl is ', $generalStore.isBackUrl)
-        }
-    } catch (error) {
-        console.log('errors in post page', error);
-        if (error && error.response.status === 400) {
-            router.push('/')
-        }
-    }
-
-    video.value.addEventListener('loadeddata', (e) => {
-        if (e.target) {
-            setTimeout(() => {
-                isLoaded.value = true
-            }, 500)
-        }
-    });
-})
-
-// WRITE SETBACKURL FUNCTION 
-const getBackUrl = (id) => {
-    let idArray = [...$generalStore.ids]
-    let index = idArray.indexOf(id)
-    if (index > 0) {
-        return `/post/${idArray[index - 1]}`
-    } else {
-        return '/'
-    }
-}
-
-
-onBeforeUnmount(() => {
-    if (video.value) {
-        video.value.pause()
-        video.value.currentTime = 0
-        video.value.src = ''
-    }
-})
-
-watch(() => isLoaded.value, () => {
-    if (isLoaded.value) {
-        setTimeout(() => video.value.play(), 500)
-    }
-})
-
-
-const loopThroughPostsDown = () => {
-    setTimeout(() => {
-        let idArrayReversed = [...$generalStore.ids].reverse();
-        let isBreak = false;
-
-        // ✅ Properly destroy video manually
-        if (video.value) {
-            video.value.pause();
-            video.value.currentTime = 0;
-            video.value.src = '';
-        }
-
-        for (let i = 0; i < idArrayReversed.length; i++) {
-            const id = idArrayReversed[i];
-            if (id < route.params.id) {
-                router.push({ name: 'post-id', params: { id } });
-                isBreak = true;
-                return;
-            }
-        }
-
-        if (!isBreak) {
-            router.push({ name: 'post-id', params: { id: idArrayReversed[0] } });
-        }
-    }, 300);
-};
-
-const loopThroughPostsUp = () => {
-    setTimeout(() => {
-        let idArrayReversed = [...$generalStore.ids].reverse();
-        let isBreak = false;
-
-        // ✅ Properly destroy video manually
-        if (video.value) {
-            video.value.pause();
-            video.value.currentTime = 0;
-            video.value.src = '';
-        }
-
-        for (let i = 0; i < idArrayReversed.length; i++) {
-            const id = idArrayReversed[i];
-            if (id < route.params.id) {
-                router.push({ name: 'post-id', params: { id } });
-                isBreak = true;
-                return;
-            }
-        }
-
-        if (!isBreak) {
-            router.push({ name: 'post-id', params: { id: idArrayReversed[0] } });
-        }
-    }, 300);
-};
-
-const isLiked = computed(() => {
-    let res = $generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
-    if (res) {
-        return true
-    }
-    return false
-})
-
-const likePost = async () => {
-    try {
-        console.log('logs here')
-        let res = $generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
-        if (res) {
-            return
-        }
-        console.log('logs here 2')
-        if (!$generalStore.selectedPost) {
-            return
-        }
-        console.log('logs here 3')
-        if ($generalStore.selectedPost.user.id === $userStore.id) {
-            return
-        }
-        console.log('logs here 4')
-        if ($generalStore.selectedPost.likes.length >= 1000) {
-            return
-        }
-        console.log('logs here 5')
-        if ($generalStore.selectedPost.likes.length < 1000) {
-            console.log('logs here 6')
-        }
-
-        await $userStore.likePost($generalStore.selectedPost, true)
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-const unlikePost = async () => {
-    try {
-        await $userStore.unlikePost($generalStore.selectedPost, true)
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-
-const deletePost = async () => {
-    const confirmed = confirm('Are you sure you want to delete this post?')
-    try {
-        if (confirmed) {
-            await $userStore.deletePost($generalStore.selectedPost)
-            await $profileStore.getProfile($userStore.id)
-
-            let res = await $profileStore.getProfile($userStore.id)
-            console.log('Profile after deletion:', res)
-
-            console.log('Extracted posts:', res.posts)
-
-
-            const posts = res.posts || []
-            console.log('posts after deletion:', posts);
-
-            // Redirect based on post count
-            if (posts.length === 0) {
-                router.push('/')
-            } else if (posts.length === 1) {
-                router.push(`/post/${posts[0].id}`)
-            } else {
-                router.push(`/profile/${$userStore.id}`)
-            }
-        }
-    } catch (error) {
-        console.error('Delete post error:', error)
-    }
-}
-
-const addComment = async () => {
-    try {
-        await $userStore.addComment($generalStore.selectedPost, comment.value)
-        comment.value = null
-        document.getElementById('Comments').scroll({ top: 0, behavior: 'smooth' });
-    } catch (error) {
-        console.log('error in addComment at posts id page ', error);
-        console.log(error)
-    }
-}
-
-</script> -->
-
-
-
 <script setup>
 const { $generalStore, $userStore, $profileStore } = useNuxtApp()
 
@@ -409,7 +176,8 @@ onMounted(async () => {
             router.push('/')
         } else {
             // $generalStore.isBackUrl = getBackUrl(route.params.id.toString())
-            $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id.toString())
+            // $generalStore.isBackUrl = $generalStore.getBackUrl(route.params.id.toString())
+            $generalStore.isBackUrl = '/'
             console.log('isBackUrl is ', $generalStore.isBackUrl)
         }
     } catch (error) {
@@ -449,15 +217,15 @@ watch(() => isLoaded.value, () => {
     }
 })
 
-const getBackUrl = (id) => {
-    const idArray = $generalStore.ids.map(i => i.toString())
-    const index = idArray.indexOf(id.toString())
-    if (index > 0) {
-        return `/post/${idArray[index - 1]}`
-    } else {
-        return '/'
-    }
-}
+// const getBackUrl = (id) => {
+//     const idArray = $generalStore.ids.map(i => i.toString())
+//     const index = idArray.indexOf(id.toString())
+//     if (index > 0) {
+//         return `/post/${idArray[index - 1]}`
+//     } else {
+//         return '/'
+//     }
+// }
 
 const destroyVideo = () => {
     if (video.value) {
@@ -488,8 +256,23 @@ const loopThroughPostsDown = () => {
 }
 
 const isLiked = computed(() => {
-    return !!$generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
+    return !!$generalStore.selectedPost?.likes?.find(
+        (like) => like.user_id === $userStore.id
+    )
 })
+
+// const isLiked = computed(() => {
+//     return $generalStore.selectedPost?.likes?.some(
+//         (like) => like.user_id === $userStore.idZ
+//     ) || false
+// })
+
+// const isLiked = computed(() => {
+//     return !!$generalStore.selectedPost?.likes?.find(like => like.user_id === $userStore.id)
+// })
+
+
+
 
 const likePost = async () => {
     try {
