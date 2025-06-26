@@ -81,7 +81,7 @@
                         <Icon name="mdi:heart" size="25" :color="isLiked ? '#F02C56' : ''" />
                     </button>
                     <span class="text-xs pl-2 pr-4 text-gray-800 font-semibold">
-                        {{ $generalStore.selectedPost.likes.length }}
+                        {{ $generalStore.selectedPost?.likes?.length }}
                     </span>
                 </div>
 
@@ -99,7 +99,7 @@
                 <div class="pt-2" />
 
                 <!-- <div v-if="($generalStore.selectedPost.comments.length < 1)" -->
-                <div v-if="($generalStore.selectedPost?.comments?.length < 1)">
+                <div v-if="($generalStore.selectedPost?.comments?.length < 1)"
                     class="text-center mt-6 text-xl text-gray-500">
                     No comments...
                 </div>
@@ -285,6 +285,27 @@ const likePost = async () => {
         console.log(error)
     }
 }
+
+// const likePost = async () => {
+//     try {
+//         const post = $generalStore.selectedPost;
+//         const likes = post?.likes;
+
+//         if (!post || !Array.isArray(likes)) return;
+
+//         const alreadyLiked = likes.find(like => like.user_id === $userStore.id);
+
+//         if (alreadyLiked || post.user.id === $userStore.id || likes.length >= 1000) {
+//             return;
+//         }
+
+//         await $userStore.likePost(post, true);
+//     } catch (error) {
+//         console.log('Error in likePost:', error);
+//     }
+// }
+
+
 
 const unlikePost = async () => {
     try {
