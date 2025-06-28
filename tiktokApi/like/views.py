@@ -1,3 +1,6 @@
+from ast import Return
+from tabnanny import check
+from requests import post
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,6 +11,7 @@ from postsapi.models import Post
 from .models import Like
 from .service.post_service import PostService
 from .serializers import LikeSerializer
+<<<<<<< HEAD
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -36,6 +40,8 @@ from django.shortcuts import get_object_or_404
 #         return Response({"like": LikeSerializer(like).data}, status=status.HTTP_201_CREATED)
 """
 
+=======
+>>>>>>> recreate/frontend/accounts
 from .utils import LikeCache  # Import LikeCache class
 
 # from rest_framework import viewsets, status
@@ -103,23 +109,34 @@ class LikeViewSet(ViewSet):
         )
 
 
-'''
-class LikeDeleteView(APIView):
+class LikeDeleteViewSet(ViewSet):
     """
-    API to unlike a post.
+    ViewSet to handle liking and unliking posts.
     """
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def delete(self, request, id):
+    @extend_schema(
+        request=None,
+        responses={200: LikeSerializer},
+        tags=["Likes"],
+    )
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE /api/likes/{id}/ → Unlike a post (delete like)
+        """
         try:
-            like = get_object_or_404(Like, id=id)
+            like = get_object_or_404(Like, id=pk)
 
-            like_data = {
-                'id': like.id,
-                'post_id': like.post_id,
-                'user_id': like.user_id
-            }
-            like.delete()
+            # Security check: only the user who created the like can delete it
+            if like.user != request.user:
+                return Response(
+                    {"error": "You cannot delete someone else's like."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
+<<<<<<< HEAD
             return Response({
                 'like': like_data,
                 'success': 'OK'
@@ -157,6 +174,8 @@ class LikeDeleteViewSet(viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
+=======
+>>>>>>> recreate/frontend/accounts
             post_id = like.post.id
 
             like_data = {
@@ -181,6 +200,7 @@ class LikeDeleteViewSet(viewsets.ViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+<<<<<<< HEAD
 
 
 # class LikeDeleteView(APIView):
@@ -220,13 +240,12 @@ class LikeDeleteViewSet(viewsets.ViewSet):
 
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+=======
+>>>>>>> recreate/frontend/accounts
 
 
-class LikeCreateView(APIView):
-    """
-    API to like a post.
-    """
 
+<<<<<<< HEAD
     def post(self, request):
         data = request.data
         post_id = data.get("post_id")
@@ -257,3 +276,5 @@ class LikeCreateView(APIView):
 #         post = get_object_or_404(Post, id=post_id)
 #         likes_count = PostService.get_likes_count(post)
 #         return Response({'likes_count': likes_count}, status=status.HTTP_200_OK)
+=======
+>>>>>>> recreate/frontend/accounts

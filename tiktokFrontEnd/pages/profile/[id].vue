@@ -1,25 +1,26 @@
-<template>
+1ml-5 w-full<template>
     <MainLayout>
         <div v-if="$profileStore.name"
             class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
             <div class="flex w-[calc(100vw-230px)]">
-                <img class="max-w-[120px] rounded-full" :src="$profileStore.image">
+                <!-- <img class="max-w-[120px] rounded-full" :src="$profileStore.image"> -->
+                <NuxtImg class="max-w-[120px] rounded-full" :src="$profileStore.image" width="120" height="120"
+                    alt="Profile Image" loading="lazy" />
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
+<<<<<<< HEAD
                         {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
+=======
+                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
+>>>>>>> recreate/frontend/accounts
                     </div>
-                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div> -- name
+                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div>
+
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
                         <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
                         <div>Edit profile</div>
                     </button>
-                    <!-- <button v-if="$profileStore.id && $userStore.id && $profileStore.id === $userStore.id"
-                        @click="$generalStore.isEditProfileOpen = true"
-                        class="flex items-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
-                        <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
-                        <div>Edit profile</div>
-                    </button> -->
 
                     <button v-else
                         class="flex item-center rounded-md py-1.5 px-8 mt-3 text-[15px] text-white font-semibold bg-[#F02C56]">
@@ -88,7 +89,31 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
+<<<<<<< HEAD
     console.log('user id coming from user store', $userStore.id);
+=======
+    // console.log('return who things that profilestore returnning ');
+    console.log('return who things that profilestore returning:', {
+        id: $profileStore.id,
+        name: $profileStore.name,
+        username: $profileStore.username,
+        image: $profileStore.image,
+        bio: $profileStore.bio,
+        posts: $profileStore.posts,
+        allLikes: $profileStore.allLikes
+    });
+    console.log('🧩 user ID:', $userStore.id)
+    // await $userStore.getProfile($userStore.id)
+    console.log('🧩 userStore profile:', {
+        id: $userStore.id,
+        name: $userStore.name,
+        username: $userStore.username,
+        image: $userStore.image,
+        bio: $userStore.bio,
+        posts: $userStore.posts,
+        allLikes: $userStore.allLikes
+    })
+>>>>>>> recreate/frontend/accounts
 
 })
 

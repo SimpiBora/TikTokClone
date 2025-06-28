@@ -51,7 +51,8 @@ export const useGeneralStore = defineStore('general', () => {
   }
 
   async function getPostById(id) {
-    const res = await $axios.get(`/api/posts/${id}`)
+    const res = await $axios.get(`/api/postdetails/${id}/`)
+    console.log('res.data: in getPostById', res.data);
     selectedPost.value = res.data.post[0]
     ids.value = res.data.ids
   }
@@ -73,6 +74,7 @@ export const useGeneralStore = defineStore('general', () => {
 
   async function getAllUsersAndPosts() {
     const res = await $axios.get('/api/home/')
+    console.log('res.data: in getAllUsersAndPosts', res.data);
     posts.value = res.data
   }
 

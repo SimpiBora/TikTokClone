@@ -72,7 +72,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+<<<<<<< HEAD
   async function register(userName, userEmail, password, confirmPassword) {
+=======
+  async function register(name, userName, userEmail, password, confirmPassword) {
+>>>>>>> recreate/frontend/accounts
     await $axios.post('/api/registeruser/', {
       username: userName,
       email: userEmail,
@@ -162,6 +166,8 @@ export const useUserStore = defineStore('user', () => {
       console.log('✅ User successfully set in store:', {
         id: id.value,
         username: username.value,
+        bio: bio.value,
+        image: image.value,
         email: email.value,
       })
 
@@ -181,48 +187,100 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function updateUserImage(data) {
-    return await $axios.post('/api/update-user-image', data)
+    return await $axios.post('/api/update/user_image/', data,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      }
+    )
   }
 
   async function updateUser(userName, userBio) {
-    return await $axios.patch('/api/update-user', {
+    return await $axios.patch('/api/update/profile/', {
       username: userName,
       bio: userBio,
-    })
+    },
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      }
+    )
   }
 
   async function createPost(data) {
-    return await $axios.post('/api/posts', data)
+    return await $axios.post('/api/postcreate/',
+      data,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      },)
   }
 
   async function deletePost(post) {
-    return await $axios.delete(`/api/posts/${post.id}`)
+    return await $axios.delete(`/api/postdelete/${post.id}/`, {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Token ${useCookie('csrftoken').value}`,
+        'X-CSRFToken': useCookie('csrftoken').value || ''
+      }
+    })
   }
 
   async function addComment(post, comment) {
-    const res = await $axios.post('/api/comments', {
-      post_id: post.id,
-      comment,
-    })
-
+    const res = await $axios.post('/api/comments/post/',
+      {
+        post_id: post.id,
+        comment,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      })
     if (res.status === 200) {
       await updateComments(post)
     }
   }
 
-  async function deleteComment(post, commentId) {
-    const res = await $axios.delete(`/api/comments/${commentId}`, {
-      post_id: post.id,
-    })
 
-    if (res.status === 200) {
-      await updateComments(post)
+  async function deleteComment(post, commentId) {
+    try {
+      const res = await $axios.delete(
+        `/api/commentdelete/${commentId}/`,
+        {
+          data: { post_id: post.id },            // ✅ Payload goes here
+          withCredentials: true,
+          headers: {
+            'Authorization': `Token ${useCookie('csrftoken').value}`,
+            'X-CSRFToken': useCookie('csrftoken').value || ''
+          }
+        }
+      );
+
+      if (res.status === 200) {
+        await updateComments(post);
+      } else {
+        console.warn('Unexpected status:', res.status);
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
     }
   }
 
   async function updateComments(post) {
     const generalStore = useGeneralStore()
-    const res = await $axios.get(`/api/profiles/${post.user.id}`)
+    const res = await $axios.get(`/api/profile/${post.user.id}/`)
 
     for (let updatedPost of res.data.posts) {
       if (post.id === updatedPost.id) {
@@ -230,6 +288,7 @@ export const useUserStore = defineStore('user', () => {
       }
     }
   }
+
 
   async function likePost(post, isPostPage) {
     const generalStore = useGeneralStore()
@@ -271,30 +330,21 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> recreate/frontend/accounts
   async function logout() {
-    // Get the CSRF token from the cookie
-    let csrfToken = useCookie('csrftoken').value
-
-    if (!csrfToken) {
-      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      await getTokens()
-      csrfToken = useCookie('csrftoken').value
-
-      if (!csrfToken) {
-        console.error('❌ Still no CSRF token after trying to fetch')
-        return null
-      }
-    } else {
-      console.log('✅ CSRF token already available:', csrfToken)
-    }
 
     try {
-      const res = await $axios.post('/api/logout/', {}, {
+      const res = await $axios.post('/api/logout/', {
         withCredentials: true,
         headers: {
-          'X-CSRFToken': csrfToken,
-        },
-      })
+          'Authorization': `Token ${useCookie('csrftoken').value}`,
+          'X-CSRFToken': useCookie('csrftoken').value || ''
+        }
+      }
+      )
     } catch (error) {
       console.error('❌ Error during logout:', error.response?.data || error.message)
     }
