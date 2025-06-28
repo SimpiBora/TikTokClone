@@ -1,3 +1,6 @@
+from multiprocessing import context
+import re
+import stat
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
@@ -10,14 +13,19 @@ from django.middleware.csrf import get_token
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from requests import session
+from requests import get, session
 from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
-
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
+from rest_framework.schemas.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema
+from django.middleware.csrf import get_token
+from .serializers import UserSerializer
 from .serializers import (
     LoginSerializer,
     # AllPostsSerializer,
@@ -26,6 +34,14 @@ from .serializers import (
     UsersCollectionSerializer,
     UserSerializer,
 )
+from rest_framework.viewsets import ViewSet
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from django.contrib.auth import logout
+# import response
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
@@ -41,25 +57,23 @@ from drf_spectacular.utils import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
+from django.shortcuts import get_object_or_404
 
-from .services import FileService
+from core.services import ImageFileService
+from rest_framework.decorators import action
 
 # rewrite this code to use the CSRF token in the header using viewsets
 
 
 class CSRFTokenViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     """
     Provides a CSRF token to the client as a cookie.
     """
 
     @extend_schema(
-        # request=PostSerializer,  # This links the serializer for the request body
-        # responses={
-        #     201: PostSerializer
-        # },  # Expected response will be the created category
         tags=["accounts"],
     )
     def list(self, request, *args, **kwargs):
@@ -76,7 +90,7 @@ class CSRFTokenViewSet(ViewSet):
 
 class RegisterUserViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -106,12 +120,21 @@ class RegisterUserViewSet(ViewSet):
                 print("token ---->", token)
                 # send email verification
 
-                return Response(
+                # return Response(
+                #     {
+                #         "token": token.key,
+                #     },
+                #     status=status.HTTP_201_CREATED,
+                # )
+
+                response = Response(
                     {
                         "token": token.key,
-                    },
-                    status=status.HTTP_201_CREATED,
+                        "success": f"You {request.user.username} or successfully registered !!",
+                        "status": status.HTTP_201_CREATED,
+                    }
                 )
+                return response
             except InterruptedError:
                 return Response(
                     {"error": "A user with this email or username already exists."},
@@ -122,7 +145,7 @@ class RegisterUserViewSet(ViewSet):
 
 class LoginViewSet(ViewSet):
     authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    permission_classes = [AllowAny]  # Disable permissions for this route
 
     @extend_schema(
         # This links the serializer for the request body
@@ -138,19 +161,21 @@ class LoginViewSet(ViewSet):
 
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            print("inside is_valid ------> ", serializer.is_valid)
             email = serializer.validated_data["email"]
-            print("email ------> ", serializer.is_valid)
             password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
             if user is not None:
-                token, _ = Token.objects.get_or_create(user=user)
-                return Response({"token": token.key}, status=status.HTTP_200_OK)
+                login(request, user)  # ✅ Set sessionid cookie
 
-            return Response(
-                {"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
-            )
+                return Response(
+                    {"detail": "Login successful"}, status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"detail": "Invalid credentials"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -161,68 +186,11 @@ class LoginViewSet(ViewSet):
         cache_key = f"login_attempt_{user_email}_{ip_address}"
         attempts = cache.get(cache_key, 0)
 
-        if attempts >= 10:
+        if attempts >= 100:  # Limit to 10 attempts
             return True
 
         cache.set(cache_key, attempts + 1, timeout=60)  # 60 seconds timeout
         return False
-
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        request.user.auth_token.delete()  # Delete the token to log out
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-from rest_framework.permissions import IsAuthenticated
-
-
-# class LoggedInUserViewSet(ViewSet):
-
-
-#     """
-#     API to get details of the logged-in user.
-#     """
-
-#     authentication_classes = []  # Disable authentication for this route
-#   permission_classes = [IsAuthenticated]  # Disable permissions for this route
-
-
-# @extend_schema(
-#         request=UserSerializer,
-#         responses={200: UserSerializer},
-#         tags=["accounts"],
-#     )
-#     def create(self, request):
-#         print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
-#         print(f"📨 [DEBUG] Request method: {request.method}")
-#         print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-#         print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
-
-#         user = request.user
-#         if user.is_anonymous:
-#             print("⛔ [DEBUG] User is anonymous. Returning 401.")
-#             return Response(
-#                 {"error": "User not authenticated"},
-#                 status=status.HTTP_401_UNAUTHORIZED,
-#             )
-
-#         serializer = UserSerializer(user)
-#         print("✅ [DEBUG] Serialized user data:", serializer.data)
-
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ViewSet
-from rest_framework.schemas.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema
-from django.middleware.csrf import get_token
-from .serializers import UserSerializer
 
 
 class LoggedInUserViewSet(ViewSet):
@@ -238,8 +206,8 @@ class LoggedInUserViewSet(ViewSet):
         responses={200: UserSerializer},
         tags=["accounts"],
     )
-    def create(self, request):
-        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.create")
+    def list(self, request):
+        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.retrieve")
 
         # Authentication Info
         print(f"🔐 [DEBUG] Authenticated user: {request.user}")
@@ -261,9 +229,9 @@ class LoggedInUserViewSet(ViewSet):
             print(f"   {key}: {request.session.get(key)}")
 
         # Serialize and prepare response
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={"request": request})
         csrf_token = get_token(request)
-        session_id = request.session.session_key
+        session_id = request.COOKIES.get("sessionid", None)
 
         print("✅ [DEBUG] Serialized user data:", serializer.data)
 
@@ -274,7 +242,7 @@ class LoggedInUserViewSet(ViewSet):
                 "csrf_token": csrf_token,
                 "sessionid": session_id,
             },
-            status=HTTP_200_OK,
+            status=status.HTTP_200_OK,
         )
 
         # Optionally also return CSRF token in headers (for frontend convenience)
@@ -282,161 +250,10 @@ class LoggedInUserViewSet(ViewSet):
 
         return response
 
-
-class UpdateUserImage(APIView):
-    """
-    API to update user image with validation and cropping dimensions.
-    """
-
-    def post(self, request):
-        print("Received data:", request.data)  # Debugging
-        # Check if the file is being sent correctly
-        print("Files:", request.FILES)
-
-        serializer = UpdateUserImageSerializer(data=request.data)
-        if not serializer.is_valid():
-            print("Validation errors:", serializer.errors)  # Debugging
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        if not all(key in request.data for key in ["height", "width", "top", "left"]):
-            return Response(
-                {"error": "The dimensions are incomplete"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            user = request.user
-            print("user for update image  ")
-            # Assuming the service handles image updates
-            FileService.update_image(user, request.data)
-            user.save()
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class GetUser(APIView):
-    """
-    API to get details of a user by ID.
-    """
-
-    def get(self, request, id):
-        try:
-            user = get_object_or_404(User, id=id)
-            serializer = UserSerializer(user, context={"request": request})
-            return Response(
-                {"success": "OK", "user": serializer.data}, status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UpdateUser(APIView):
-    """
-    API to update the logged-in user's name and bio.
-    """
-
-    def patch(self, request):
-        serializer = UserSerializer(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = request.user
-            user.name = request.data.get("name", user.name)
-            user.bio = request.data.get("bio", user.bio)
-            user.save()
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostCreateView(APIView):
-    """
-    API to create a new post with a video.
-    """
-
-    def post(self, request):
-        data = request.data
-        video = request.FILES.get("video")
-
-        if not video or not video.name.endswith(".mp4"):
-            return Response(
-                {"error": "The video field is required and must be a valid MP4 file."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if "text" not in data:
-            return Response(
-                {"error": "The text field is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            post = Post(user=request.user, text=data["text"])
-            # FileService to handle video uploads
-            post = FileService.add_video(post, video)
-            post.save()
-
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostDetailView(APIView):
-    """
-    API to retrieve a specific post and related posts by the same user.
-    """
-
-    def get(self, request, id):
-        try:
-            post = get_object_or_404(Post, id=id)
-            related_posts = Post.objects.filter(user=post.user).values_list(
-                "id", flat=True
-            )
-
-            # post_serializer = AllPostsSerializer([post], many=True)
-            post_serializer = PostSerializer(
-                [post], many=True, context={"request": request}
-            )
-            # return Response({
-            #     'post': post_serializer.data,
-            #     'ids': list(related_posts)
-            # }, status=status.HTTP_200_OK)
-
-            return Response(
-                {
-                    # post_serializer.data,
-                    "post": post_serializer.data,
-                    "ids": list(related_posts),
-                },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostDeleteView(APIView):
-    """
-    API to delete a specific post along with its associated video file.
-    """
-
-    def delete(self, request, id):
-        try:
-            post = get_object_or_404(Post, id=id)
-            if post.video and default_storage.exists(post.video.path):
-                # Delete the video file
-                default_storage.delete(post.video.path)
-            post.delete()
-
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
+# add pagination logic here 
 class ProfileViewSet(ViewSet):
-    authentication_classes = []  # Disable authentication for this route
-    permission_classes = []  # Disable permissions for this route
+    authentication_classes = [SessionAuthentication]  # Disable authentication for this route
+    permission_classes = [IsAuthenticated]  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
     """
@@ -458,7 +275,7 @@ class ProfileViewSet(ViewSet):
             post_serializer = PostSerializer(
                 posts, many=True, context={"request": request}
             )
-            user_serializer = UserSerializer(user)
+            user_serializer = UserSerializer(user, context={"request": request})
 
             return Response(
                 {
@@ -470,6 +287,85 @@ class ProfileViewSet(ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class LogoutViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        tags=["accounts"],
+    )
+    def create(self, request):
+        print("🔍 [DEBUG] Incoming request to LogoutViewSet.create")
+        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+
+        # Log out the user by flushing the session
+        logout(request)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Update(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: UpdateUserImageSerializer},
+        tags=["accounts"],
+        description="Update user profile image with cropping data.",
+    )
+    @action(detail=False, methods=["post"])
+    def user_image(self, request):
+        print("Content-Type:", request.content_type)
+        print("Received data:", request.data)
+        print("Files:", request.FILES)
+
+        # ✅ Let DRF handle merging
+        serializer = UpdateUserImageSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ImageFileService.update_image(request.user, serializer.validated_data)
+            return Response(
+                {
+                    "success": "OK",
+                    "image": request.build_absolute_uri(request.user.image.url),
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UpdateViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=UserSerializer,
+        responses={200: UserSerializer},
+        tags=["accounts"],
+        description="Update user's profile name and bio.",
+    )
+    @action(detail=False, methods=["patch"])
+    def profile(self, request):
+        """
+        Patch the authenticated user's name and bio.
+        """
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": "OK"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GetRandomUsersViewSet(ViewSet):
     @extend_schema(
@@ -487,8 +383,12 @@ class GetRandomUsersViewSet(ViewSet):
             following_users = User.objects.order_by("?")[:10]
 
             # Serialize the data
-            suggested_serializer = UserSerializer(suggested_users, many=True)
-            following_serializer = UserSerializer(following_users, many=True)
+            suggested_serializer = UserSerializer(
+                suggested_users, many=True, context={"request": request}
+            )
+            following_serializer = UserSerializer(
+                following_users, many=True, context={"request": request}
+            )
 
             return Response(
                 {

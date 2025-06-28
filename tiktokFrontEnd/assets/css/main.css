@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* assets/css/main.css */
+body {
+    background-color: #d0d4d4;
+    /* dark grey */
+    color: rgb(2, 2, 2);
+}

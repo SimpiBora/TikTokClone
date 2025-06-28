@@ -8,7 +8,7 @@ dist
 
 # Node dependencies
 node_modules
-
+*djangonuxtsessionauth
 # pyblics 
 public/images
 public/images
