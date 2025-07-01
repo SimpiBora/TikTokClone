@@ -8,11 +8,7 @@
                     alt="Profile Image" loading="lazy" />
                 <div class="ml-5 w-full">
                     <div class="text-[30px] font-bold truncate">
-<<<<<<< HEAD
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }} -- full name
-=======
                         {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
->>>>>>> recreate/frontend/accounts
                     </div>
                     <div class="text-[18px] truncate">{{ $profileStore.username }}</div>
 
