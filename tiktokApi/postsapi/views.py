@@ -71,36 +71,6 @@ class PostCreateViewSet(ViewSet):
     ViewSet to handle post creation with a video.
     """
 
-<<<<<<< HEAD
-#             return Response(
-#                 {
-#                     # post_serializer.data,
-#                     "post": post_serializer.data,
-#                     "ids": list(related_posts),
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PostViewSet(ViewSet):
-    @extend_schema(
-        request=PostSerializer,  # This links the serializer for the request body
-        responses={
-            200: PostSerializer,  # This links the serializer for the response
-        },  # Expected response will be the created category
-        tags=["Posts"],
-        summary="Create a new post",
-        description="This endpoint allows you to create a new post.",
-    )
-    def create(self, request):
-        serializer = PostSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
-=======
     @extend_schema(
         request=PostSerializer,
         responses={200: PostSerializer},
@@ -162,4 +132,3 @@ class PostDeleteViewSet(ViewSet):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
->>>>>>> recreate/frontend/accounts

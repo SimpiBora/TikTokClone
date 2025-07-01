@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <template>
     <div id="EditProfileOverlay"
         class="fixed flex justify-center pt-14 md:pt-[105px] z-50 top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto">
@@ -118,7 +116,6 @@
     </div>
 </template>
 
->>>>>>> recreate/frontend/accounts
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
@@ -127,11 +124,7 @@ import 'vue-advanced-cropper/dist/style.css'
 import { storeToRefs } from 'pinia'
 
 const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-<<<<<<< HEAD
-const { name, username, bio, image } = storeToRefs($userStore)
-=======
 const { username, bio, image } = storeToRefs($userStore)
->>>>>>> recreate/frontend/accounts
 const route = useRoute()
 
 // Reactive state
@@ -146,10 +139,6 @@ const isUpdated = ref(false)
 
 // Initialize local state from store on mount
 onMounted(() => {
-<<<<<<< HEAD
-    Name.value = name.value
-=======
->>>>>>> recreate/frontend/accounts
     userName.value = username.value
     userBio.value = bio.value
     userImage.value = image.value

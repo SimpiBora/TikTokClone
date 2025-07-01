@@ -15,11 +15,6 @@
 
 from inspect import getmembers, isclass
 
-<<<<<<< HEAD
-from inspect import getmembers, isclass
-
-=======
->>>>>>> recreate/frontend/accounts
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ViewSet
@@ -43,10 +38,6 @@ urlpatterns = [
     # Manually add the custom path for DynamicCategoryURLFilterViewSet
 ]
 
-<<<<<<< HEAD
-
-=======
->>>>>>> recreate/frontend/accounts
 # from django.urls import path
 # from .views import LikeCreateView, LikeDeleteView, LikeView
 # # from .views import LikesCountView, LikeCreateView, LikeDeleteView, LikeView

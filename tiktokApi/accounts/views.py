@@ -327,39 +327,7 @@ class Update(ViewSet):
         serializer = UpdateUserImageSerializer(data=request.data)
 
         if not serializer.is_valid():
-<<<<<<< HEAD
-            print("Validation errors:", serializer.errors)  # Debugging
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        if not all(key in request.data for key in ["height", "width", "top", "left"]):
-            return Response(
-                {"error": "The dimensions are incomplete"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            user = request.user
-            print("user for update image  ")
-            # Assuming the service handles image updates
-            FileService.update_image(user, request.data)
-            user.save()
-            return Response({"success": "OK"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-class UpdateUser(APIView):
-    """
-    API to update the logged-in user's name and bio.
-    """
-
-    def patch(self, request):
-        serializer = UserSerializer(data=request.data, partial=True)
-        if not serializer.is_valid():
-=======
             print("Validation errors:", serializer.errors)
->>>>>>> recreate/frontend/accounts
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:

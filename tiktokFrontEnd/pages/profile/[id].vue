@@ -89,9 +89,6 @@ onMounted(async () => {
     }
 
     console.log('🧩 profile ID:', $profileStore.id)
-<<<<<<< HEAD
-    console.log('user id coming from user store', $userStore.id);
-=======
     // console.log('return who things that profilestore returnning ');
     console.log('return who things that profilestore returning:', {
         id: $profileStore.id,
@@ -113,7 +110,6 @@ onMounted(async () => {
         posts: $userStore.posts,
         allLikes: $userStore.allLikes
     })
->>>>>>> recreate/frontend/accounts
 
 })
 

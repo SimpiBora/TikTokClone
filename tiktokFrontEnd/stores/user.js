@@ -72,11 +72,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-<<<<<<< HEAD
-  async function register(userName, userEmail, password, confirmPassword) {
-=======
   async function register(name, userName, userEmail, password, confirmPassword) {
->>>>>>> recreate/frontend/accounts
     await $axios.post('/api/registeruser/', {
       username: userName,
       email: userEmail,
@@ -330,10 +326,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> recreate/frontend/accounts
   async function logout() {
 
     try {
