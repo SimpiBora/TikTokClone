@@ -18,4 +18,3 @@ export const useFeedStore = defineStore('feed', () => {
 
   return store
 })
-
