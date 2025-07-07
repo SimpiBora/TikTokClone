@@ -1,7 +1,3 @@
-import logging
-
-logger = logging.getLogger(__name__)
-
 from django.conf import settings
 from comments.serializers import CommentSerializer
 from like.serializers import LikeSerializer
@@ -17,14 +13,13 @@ class PostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True)
     likes = LikeSerializer(many=True, read_only=True)
     video = serializers.SerializerMethodField()
-    created_at = serializers.SerializerMethodField()    
+    created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = ["id", "text", "video", "created_at", "comments", "likes", "user"]
         depth = 2
         # fields = ["id", "text", "video", "created_at","likes", "user"]
-
 
     def get_user(self, obj):
         request = self.context.get("request")
@@ -59,7 +54,7 @@ class PostSerializer(serializers.ModelSerializer):
         return {
             "id": user.id,
             "name": user.name,
-            'username':user.username,
+            "username": user.username,
             "email": user.email,
             "image": image_url,
         }
@@ -85,7 +80,6 @@ class PostSerializer(serializers.ModelSerializer):
             print("No video file associated or video field is missing.")
 
         return video_url
-
 
     def get_created_at(self, obj):
         return obj.created_at.strftime("%b %d %Y")

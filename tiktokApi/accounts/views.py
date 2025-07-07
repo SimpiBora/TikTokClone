@@ -275,15 +275,15 @@ class ProfileViewSet(ViewSet):
         """
         try:
             user = get_object_or_404(User, pk=pk)
-            # posts = Post.objects.filter(user=user).order_by("-created_at")
+            posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            # post_serializer = PostSerializer(many=True, context={"request": request})
+            post_serializer = PostSerializer(posts, many=True, context={"request": request})
             user_serializer = UserSerializer(user, context={"request": request})
 
             return Response(
                 {
-                    # "posts": post_serializer.data,
+                    "posts": post_serializer.data,
                     "user": user_serializer.data,
                 },
                 status=status.HTTP_200_OK,
