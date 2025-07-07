@@ -6,13 +6,15 @@ from rest_framework import serializers
 
 from .models import Post
 
+
 user = get_user_model()
 
 
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True)
-    likes = LikeSerializer(many=True)
+    # likes = LikeSerializer(many=True)
+    likes = LikeSerializer(many=True, read_only=True, source="liked_post")
     video = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
 
