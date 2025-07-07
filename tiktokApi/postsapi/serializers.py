@@ -1,9 +1,10 @@
-from django.conf import settings
 from comments.serializers import CommentSerializer
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from like.serializers import LikeSerializer
 from rest_framework import serializers
+
 from .models import Post
-from django.contrib.auth import get_user_model
 
 user = get_user_model()
 
@@ -11,7 +12,7 @@ user = get_user_model()
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True)
-    likes = LikeSerializer(many=True, read_only=True)
+    likes = LikeSerializer(many=True)
     video = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
 
