@@ -62,6 +62,9 @@ from django.shortcuts import get_object_or_404
 from core.services import ImageFileService
 from rest_framework.decorators import action
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from pagination.custompagination import CustomCursorPagination
+
 # rewrite this code to use the CSRF token in the header using viewsets
 
 
@@ -250,9 +253,12 @@ class LoggedInUserViewSet(ViewSet):
 
         return response
 
-# add pagination logic here 
+
+# add pagination logic here
 class ProfileViewSet(ViewSet):
-    authentication_classes = [SessionAuthentication]  # Disable authentication for this route
+    authentication_classes = [
+        SessionAuthentication
+    ]  # Disable authentication for this route
     permission_classes = [IsAuthenticated]  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
@@ -272,9 +278,7 @@ class ProfileViewSet(ViewSet):
             posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            post_serializer = PostSerializer(
-                posts, many=True, context={"request": request}
-            )
+            post_serializer = PostSerializer(posts, many=True, context={"request": request})
             user_serializer = UserSerializer(user, context={"request": request})
 
             return Response(
@@ -284,6 +288,40 @@ class ProfileViewSet(ViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfilePostViewSet(ViewSet):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["accounts"],
+        parameters=[
+            OpenApiParameter(
+                name="cursor",
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description="Cursor for pagination",
+            ),
+        ],
+        responses={200: PostSerializer(many=True)},
+        description="Paginated posts of a user using cursor pagination",
+    )
+    def list(self, request, user_id=None):
+        try:
+            user = get_object_or_404(User, pk=user_id)
+
+            queryset = Post.objects.filter(user=user).order_by("-created_at")
+
+            paginator = CustomCursorPagination()
+            paginated_qs = paginator.paginate_queryset(queryset, request)
+
+            serializer = PostSerializer(
+                paginated_qs, many=True, context={"request": request}
+            )
+            return paginator.get_paginated_response(serializer.data)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -366,6 +404,7 @@ class UpdateViewSet(ViewSet):
             return Response({"success": "OK"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class GetRandomUsersViewSet(ViewSet):
     @extend_schema(

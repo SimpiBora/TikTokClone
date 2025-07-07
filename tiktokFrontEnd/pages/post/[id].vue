@@ -217,16 +217,6 @@ watch(() => isLoaded.value, () => {
     }
 })
 
-// const getBackUrl = (id) => {
-//     const idArray = $generalStore.ids.map(i => i.toString())
-//     const index = idArray.indexOf(id.toString())
-//     if (index > 0) {
-//         return `/post/${idArray[index - 1]}`
-//     } else {
-//         return '/'
-//     }
-// }
-
 const destroyVideo = () => {
     if (video.value) {
         video.value.pause()
@@ -261,17 +251,6 @@ const isLiked = computed(() => {
     )
 })
 
-// const isLiked = computed(() => {
-//     return $generalStore.selectedPost?.likes?.some(
-//         (like) => like.user_id === $userStore.idZ
-//     ) || false
-// })
-
-// const isLiked = computed(() => {
-//     return !!$generalStore.selectedPost?.likes?.find(like => like.user_id === $userStore.id)
-// })
-
-
 
 
 const likePost = async () => {
@@ -285,26 +264,6 @@ const likePost = async () => {
         console.log(error)
     }
 }
-
-// const likePost = async () => {
-//     try {
-//         const post = $generalStore.selectedPost;
-//         const likes = post?.likes;
-
-//         if (!post || !Array.isArray(likes)) return;
-
-//         const alreadyLiked = likes.find(like => like.user_id === $userStore.id);
-
-//         if (alreadyLiked || post.user.id === $userStore.id || likes.length >= 1000) {
-//             return;
-//         }
-
-//         await $userStore.likePost(post, true);
-//     } catch (error) {
-//         console.log('Error in likePost:', error);
-//     }
-// }
-
 
 
 const unlikePost = async () => {
