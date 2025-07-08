@@ -1,3 +1,4 @@
+<!-- pages/post/[id].vue -->
 <template>
     <div id="PostPage"
         class="fixed lg:flex justify-between z-50 top-0 left-0 w-full h-full bg-black lg:overflow-hidden overflow-auto">
