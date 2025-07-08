@@ -2,12 +2,13 @@
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
 import { useGeneralStore } from './general'
-// const generalStore = useGeneralStore()
+
 const $axios = axios().provide.axios
 
 export const useUserStore = defineStore('user', () => {
   // State
   const id = ref('')
+  const name = ref('')
   const username = ref('')
   const bio = ref('')
   const image = ref('')
@@ -19,24 +20,6 @@ export const useUserStore = defineStore('user', () => {
     await $axios.get('/api/csrftoken/')
   }
 
-  // async function login(userEmail, password) {
-  //   await $axios.post('/api/login/', {
-  //     email: userEmail,
-  //     password: password,
-  //   })
-  //   console.log('user store login called')
-  // }
-
-  // async function login(userEmail, password) {
-  //   await $axios.post('/api/login/', {
-  //     email: userEmail,
-  //     password: password
-  //   }, {
-  //     withCredentials: true  // ✅ sends/receives cookies like `sessionid`
-  //   })
-  //   console.log('user store login called')
-  // }
-
   async function login(userEmail, password) {
     console.log('🔐 login() called with:', { userEmail, password })
 
@@ -44,9 +27,11 @@ export const useUserStore = defineStore('user', () => {
       const res = await $axios.post('/api/login/', {
         email: userEmail,
         password: password
-      }, {
-        withCredentials: true  // required to store/set sessionid
-      })
+      },
+        { withCredentials: true }
+      )
+
+
 
       console.log('✅ Login response received')
       console.log('📥 Response data:', res.data)
@@ -74,6 +59,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function register(name, userName, userEmail, password, confirmPassword) {
     await $axios.post('/api/registeruser/', {
+      name: name,
       username: userName,
       email: userEmail,
       password: password,
@@ -84,81 +70,25 @@ export const useUserStore = defineStore('user', () => {
   async function getUser() {
     console.log('🔍 Starting getUser() function')
 
-    // Step 1: CSRF Token Check
-    let csrfToken = useCookie('csrftoken').value
-    console.log('🍪 Initial CSRF Token:', csrfToken)
-
-    if (!csrfToken) {
-      console.warn('⚠️ CSRF token not found. Attempting to fetch tokens...')
-      await getTokens()
-      csrfToken = useCookie('csrftoken').value
-      console.log('🍪 CSRF Token after fetch:', csrfToken)
-
-      if (!csrfToken) {
-        console.error('❌ Still no CSRF token after trying to fetch')
-        return null
-      }
-    } else {
-      console.log('✅ CSRF token already available:', csrfToken)
-    }
-
-    // Step 2: Log outgoing headers
-    const headers = {
-      'X-CSRFToken': csrfToken,
-    }
-    console.log('📤 Headers being sent:', headers)
-
-    const token = useCookie('csrftoken')?.value || localStorage.getItem('token')
-    if (!token) {
-      console.error('❌ No token found in cookies or localStorage')
-      return null
-    }
-    console.log('🔑 Token found:', token)
-
     try {
-      // Step 3: Make POST request with withCredentials
-      const res = await $axios.post(
-        '/api/loggedinuser/',
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            'Authorization': `Token ${token}`,
-            'X-CSRFToken': headers // optional, if using CSRF
-          }
-        }
-      )
+      const res = await $axios.get('/api/loggedinuser/', {
+        withCredentials: true,
+      })
 
-
-      // Step 4: Log raw response
-      console.log('📡 Full Axios Response:', res)
-      console.log('📦 Response Data:', res.data)
-
-      // Step 5: Extract and log user_data
       const user = res.data.user_data
-      console.log('👤 Extracted user_data:', JSON.stringify(user, null, 2))
 
       if (!user || !user.id) {
         console.warn('⚠️ No user data found in response')
         return null
       }
 
-      // Step 6: Log each value you are setting
-      console.log('🧠 Setting user in store:')
-      console.log('   id:', user.id)
-      console.log('   username:', user.username)
-      console.log('   bio:', user.bio)
-      console.log('   image:', user.image)
-      console.log('   email:', user.email)
-
-      // Step 7: Actually set into your store
+      // Set store values
       id.value = user.id
       username.value = user.username
       bio.value = user.bio
       image.value = user.image
       email.value = user.email
 
-      // Step 8: Final log summary
       console.log('✅ User successfully set in store:', {
         id: id.value,
         username: username.value,
@@ -169,18 +99,11 @@ export const useUserStore = defineStore('user', () => {
 
       return user
     } catch (err) {
-      console.error('❌ Error fetching user:')
-      console.error('   Message:', err.message)
-      if (err.response) {
-        console.error('   Status:', err.response.status)
-        console.error('   Data:', JSON.stringify(err.response.data, null, 2))
-        console.error('   Headers:', err.response.headers)
-      } else {
-        console.error('   No response received')
-      }
+      console.error('❌ Error fetching user:', err.response?.data || err.message)
       return null
     }
   }
+
 
   async function updateUserImage(data) {
     return await $axios.post('/api/update/user_image/', data,
@@ -325,6 +248,7 @@ export const useUserStore = defineStore('user', () => {
       singlePost.likes.splice(index, 1)
     }
   }
+
 
   async function logout() {
 

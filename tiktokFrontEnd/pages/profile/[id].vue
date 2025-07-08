@@ -156,7 +156,7 @@ watch(() => posts.value, () => {
                     <span class="text-gray-500 font-light text-[15px] pl-1.5">Followers</span>
                 </div>
                 <div class="mr-4">
-                    <span class="font-bold">{{ allLikes }}</span>
+                    <span class="font-bold"> {{ $profileStore.allLikes }}</span>
                     <span class="text-gray-500 font-light text-[15px] pl-1.5">Likes</span>
                 </div>
             </div>
@@ -203,6 +203,14 @@ const { posts, allLikes, fetchItems, hasMore, loading } = storeToRefs(postStore)
 const route = useRoute()
 
 definePageMeta({ middleware: 'auth' })
+
+console.log('this is profile page');
+console.log('posts, ', posts);
+console.log('likes', profileStore.allLikes);
+console.log('fetchitems', fetchItems);
+console.log('hasMore', hasMore);
+console.log('loading', loading);
+
 
 onMounted(async () => {
     await profileStore.getProfile(route.params.id)

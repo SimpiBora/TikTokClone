@@ -1,6 +1,3 @@
-from multiprocessing import context
-import re
-import stat
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
@@ -13,7 +10,6 @@ from django.middleware.csrf import get_token
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from requests import get, session
 from postsapi.serializers import PostSerializer
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
@@ -22,47 +18,30 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from postsapi.models import Post
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from rest_framework.schemas.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema
-from django.middleware.csrf import get_token
 from .serializers import UserSerializer
 from .serializers import (
     LoginSerializer,
     # AllPostsSerializer,
-    UpdateUserImageSerializer,
     UserRegistrationSerializer,
     UsersCollectionSerializer,
-    UserSerializer,
 )
-from rest_framework.viewsets import ViewSet
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from drf_spectacular.utils import extend_schema
 from django.contrib.auth import logout
 # import response
 
 User = get_user_model()
 # from .models import Post, User, Comment, Like, Post
-from django.core.files.storage import default_storage
 
 # from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
 # drf spectacular schema
-from drf_spectacular.utils import (
-    extend_schema,
-)
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
-from django.shortcuts import get_object_or_404
 
-from core.services import ImageFileService
 from rest_framework.decorators import action
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter
 from pagination.custompagination import CustomCursorPagination
 
 # rewrite this code to use the CSRF token in the header using viewsets
@@ -259,6 +238,7 @@ class ProfileViewSet(ViewSet):
     authentication_classes = [
         SessionAuthentication
     ]  # Disable authentication for this route
+
     permission_classes = [IsAuthenticated]  # Disable permissions for this route
     """
     API to display the user's posts and profile information.
@@ -275,15 +255,15 @@ class ProfileViewSet(ViewSet):
         """
         try:
             user = get_object_or_404(User, pk=pk)
-            posts = Post.objects.filter(user=user).order_by("-created_at")
+            # posts = Post.objects.filter(user=user).order_by("-created_at")
 
             # Serialize the data
-            post_serializer = PostSerializer(posts, many=True, context={"request": request})
+            # post_serializer = PostSerializer(posts, many=True, context={"request": request})
             user_serializer = UserSerializer(user, context={"request": request})
 
             return Response(
                 {
-                    "posts": post_serializer.data,
+                    # "posts": post_serializer.data,
                     "user": user_serializer.data,
                 },
                 status=status.HTTP_200_OK,
@@ -293,7 +273,8 @@ class ProfileViewSet(ViewSet):
 
 
 class ProfilePostViewSet(ViewSet):
-    permission_classes = [AllowAny]
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         tags=["accounts"],
@@ -306,12 +287,11 @@ class ProfilePostViewSet(ViewSet):
             ),
         ],
         responses={200: PostSerializer(many=True)},
-        description="Paginated posts of a user using cursor pagination",
+        description="Paginated posts of a user using cursor pagination.",
     )
     def list(self, request, user_id=None):
         try:
             user = get_object_or_404(User, pk=user_id)
-
             queryset = Post.objects.filter(user=user).order_by("-created_at")
 
             paginator = CustomCursorPagination()
@@ -321,9 +301,42 @@ class ProfilePostViewSet(ViewSet):
                 paginated_qs, many=True, context={"request": request}
             )
             return paginator.get_paginated_response(serializer.data)
-
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class ProfilePostViewSet(ViewSet):
+#     permission_classes = [AllowAny]
+
+#     @extend_schema(
+#         tags=["accounts"],
+#         parameters=[
+#             OpenApiParameter(
+#                 name="cursor",
+#                 required=False,
+#                 location=OpenApiParameter.QUERY,
+#                 description="Cursor for pagination",
+#             ),
+#         ],
+#         responses={200: PostSerializer(many=True)},
+#         description="Paginated posts of a user using cursor pagination",
+#     )
+#     def list(self, request, user_id=None):
+#         try:
+#             user = get_object_or_404(User, pk=user_id)
+
+#             queryset = Post.objects.filter(user=user).order_by("-created_at")
+
+#             paginator = CustomCursorPagination()
+#             paginated_qs = paginator.paginate_queryset(queryset, request)
+
+#             serializer = PostSerializer(
+#                 paginated_qs, many=True, context={"request": request}
+#             )
+#             return paginator.get_paginated_response(serializer.data)
+
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutViewSet(ViewSet):
@@ -346,39 +359,39 @@ class LogoutViewSet(ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Update(ViewSet):
-    authentication_classes = [SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+# class Update(ViewSet):
+# authentication_classes = [SessionAuthentication]
+# permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        responses={200: UpdateUserImageSerializer},
-        tags=["accounts"],
-        description="Update user profile image with cropping data.",
-    )
-    @action(detail=False, methods=["post"])
-    def user_image(self, request):
-        print("Content-Type:", request.content_type)
-        print("Received data:", request.data)
-        print("Files:", request.FILES)
+# @extend_schema(
+#     responses={200: UpdateUserImageSerializer},
+#     tags=["accounts"],
+#     description="Update user profile image with cropping data.",
+# )
+# @action(detail=False, methods=["post"])
+# def user_image(self, request):
+#     print("Content-Type:", request.content_type)
+#     print("Received data:", request.data)
+#     print("Files:", request.FILES)
 
-        # ✅ Let DRF handle merging
-        serializer = UpdateUserImageSerializer(data=request.data)
+#     # ✅ Let DRF handle merging
+#     serializer = UpdateUserImageSerializer(data=request.data)
 
-        if not serializer.is_valid():
-            print("Validation errors:", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     if not serializer.is_valid():
+#         print("Validation errors:", serializer.errors)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            ImageFileService.update_image(request.user, serializer.validated_data)
-            return Response(
-                {
-                    "success": "OK",
-                    "image": request.build_absolute_uri(request.user.image.url),
-                },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#     try:
+#         ImageFileService.update_image(request.user, serializer.validated_data)
+#         return Response(
+#             {
+#                 "success": "OK",
+#                 "image": request.build_absolute_uri(request.user.image.url),
+#             },
+#             status=status.HTTP_200_OK,
+#         )
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateViewSet(ViewSet):
