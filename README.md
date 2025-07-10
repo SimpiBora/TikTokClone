@@ -41,6 +41,8 @@ python manage.py generate_users
 ## generate fake user with videos
 python manage.py generate_likes
 
+what the hell 
+
 <!-- I CREATE MODELS
 ACCOUNTS ( FOR USER LOGIN REGISTER LIKE WORK )
 LIKE
