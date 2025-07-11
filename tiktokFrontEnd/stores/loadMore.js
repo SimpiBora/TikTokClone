@@ -8,6 +8,7 @@ import { createCursorStore } from '~/stores/utils/cursorStoreFactory'
 // This store uses the cursorStoreFactory to create a feed store that handles pagination
 export const useFeedStore = defineStore('feed', () => {
   const { $axios } = useNuxtApp()
+  console.log('Feed store initialized:', useFeedStore())
   const store = createCursorStore({
     name: 'feed',
     fetchFn: (cursor) =>
