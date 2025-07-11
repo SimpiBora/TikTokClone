@@ -28,23 +28,23 @@ class PostSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = obj.user
 
-        print(f"[DEBUG] Entered get_user for user ID: {getattr(user, 'id', 'Unknown')}")
-        print(
-            f"[DEBUG] Has image attribute? {'Yes' if hasattr(user, 'image') else 'No'}"
-        )
+        # print(f"[DEBUG] Entered get_user for user ID: {getattr(user, 'id', 'Unknown')}")
+        # print(
+        #     f"[DEBUG] Has image attribute? {'Yes' if hasattr(user, 'image') else 'No'}"
+        # )
 
         image_url = None
         if hasattr(user, "image") and user.image and hasattr(user.image, "url"):
             print(f"[DEBUG] Image field exists and is set: {user.image}")
             try:
                 raw_url = user.image.url
-                print(f"[DEBUG] Raw image URL: {raw_url}")
+                # print(f"[DEBUG] Raw image URL: {raw_url}")
                 image_url = (
                     request.build_absolute_uri(raw_url)
                     if request
                     else f"{settings.MEDIA_URL}{raw_url}"
                 )
-                print(f"[DEBUG] Final image URL: {image_url}")
+                # print(f"[DEBUG] Final image URL: {image_url}")
             except ValueError as e:
                 print(f"[ERROR] No image file associated with user {user.id}: {e}")
             except Exception as e:
@@ -68,16 +68,16 @@ class PostSerializer(serializers.ModelSerializer):
         video_url = None
         if hasattr(obj, "video") and obj.video:  # Safely check the video exists
             try:
-                print("Video field exists:", obj.video)
+                # print("Video field exists:", obj.video)
                 if request:
                     video_url = request.build_absolute_uri(obj.video.url)
-                    print("Full video URL with request:", video_url)
+                    # print("Full video URL with request:", video_url)
                 else:
                     video_url = f"{settings.MEDIA_URL}{obj.video.url}"
-                    print("Fallback video URL without request:", video_url)
+                    # print("Fallback video URL without request:", video_url)
             except ValueError as e:
                 # Handles "The 'video' attribute has no file associated with it."
-                print("Caught ValueError when accessing video URL:", str(e))
+                # print("Caught ValueError when accessing video URL:", str(e))
                 video_url = None
         else:
             print("No video file associated or video field is missing.")

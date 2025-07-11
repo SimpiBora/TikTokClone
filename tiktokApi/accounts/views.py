@@ -19,7 +19,8 @@ from postsapi.models import Post
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from drf_spectacular.utils import extend_schema
-from .serializers import UserSerializer
+from core.services import ImageFileService
+from .serializers import UpdateUserImageSerializer, UserSerializer
 from .serializers import (
     LoginSerializer,
     # AllPostsSerializer,
@@ -88,26 +89,18 @@ class RegisterUserViewSet(ViewSet):
 
         """
         serializer = UserRegistrationSerializer(data=request.data)
-        print("serializer ---->", serializer)
-        print("request.data ---->", request.data)
+        # print("serializer ---->", serializer)
+        # print("request.data ---->", request.data)
 
         if serializer.is_valid():
             try:
                 # Create the user
                 user = serializer.save()
-                print("user ---->", user)
+                # print("user ---->", user)
 
                 # Optionally create a token
                 token = Token.objects.create(user=user)
-                print("token ---->", token)
-                # send email verification
 
-                # return Response(
-                #     {
-                #         "token": token.key,
-                #     },
-                #     status=status.HTTP_201_CREATED,
-                # )
 
                 response = Response(
                     {
@@ -189,19 +182,19 @@ class LoggedInUserViewSet(ViewSet):
         tags=["accounts"],
     )
     def list(self, request):
-        print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.retrieve")
+        # print("🔍 [DEBUG] Incoming request to LoggedInUserViewSet.retrieve")
 
         # Authentication Info
-        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+        # print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        # print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
 
-        # Headers
-        print("📦 [DEBUG] Request Headers:")
+        # # Headers
+        # print("📦 [DEBUG] Request Headers:")
         for key, value in request.headers.items():
             print(f"   {key}: {value}")
 
         # Cookies
-        print("🍪 [DEBUG] Request Cookies:")
+        # print("🍪 [DEBUG] Request Cookies:")
         for key, value in request.COOKIES.items():
             print(f"   {key}: {value}")
 
@@ -215,7 +208,7 @@ class LoggedInUserViewSet(ViewSet):
         csrf_token = get_token(request)
         session_id = request.COOKIES.get("sessionid", None)
 
-        print("✅ [DEBUG] Serialized user data:", serializer.data)
+        # print("✅ [DEBUG] Serialized user data:", serializer.data)
 
         response = Response(
             {
@@ -273,8 +266,8 @@ class ProfileViewSet(ViewSet):
 
 
 class ProfilePostViewSet(ViewSet):
-    authentication_classes = [SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         tags=["accounts"],
@@ -293,50 +286,17 @@ class ProfilePostViewSet(ViewSet):
         try:
             user = get_object_or_404(User, pk=user_id)
             queryset = Post.objects.filter(user=user).order_by("-created_at")
-
             paginator = CustomCursorPagination()
             paginated_qs = paginator.paginate_queryset(queryset, request)
 
             serializer = PostSerializer(
                 paginated_qs, many=True, context={"request": request}
             )
+            # print("🔍 [DEBUG] Paginated posts data:", serializer.data)
+
             return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class ProfilePostViewSet(ViewSet):
-#     permission_classes = [AllowAny]
-
-#     @extend_schema(
-#         tags=["accounts"],
-#         parameters=[
-#             OpenApiParameter(
-#                 name="cursor",
-#                 required=False,
-#                 location=OpenApiParameter.QUERY,
-#                 description="Cursor for pagination",
-#             ),
-#         ],
-#         responses={200: PostSerializer(many=True)},
-#         description="Paginated posts of a user using cursor pagination",
-#     )
-#     def list(self, request, user_id=None):
-#         try:
-#             user = get_object_or_404(User, pk=user_id)
-
-#             queryset = Post.objects.filter(user=user).order_by("-created_at")
-
-#             paginator = CustomCursorPagination()
-#             paginated_qs = paginator.paginate_queryset(queryset, request)
-
-#             serializer = PostSerializer(
-#                 paginated_qs, many=True, context={"request": request}
-#             )
-#             return paginator.get_paginated_response(serializer.data)
-
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutViewSet(ViewSet):
@@ -349,9 +309,9 @@ class LogoutViewSet(ViewSet):
         tags=["accounts"],
     )
     def create(self, request):
-        print("🔍 [DEBUG] Incoming request to LogoutViewSet.create")
-        print(f"🔐 [DEBUG] Authenticated user: {request.user}")
-        print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
+        # print("🔍 [DEBUG] Incoming request to LogoutViewSet.create")
+        # print(f"🔐 [DEBUG] Authenticated user: {request.user}")
+        # print(f"🔐 [DEBUG] Is user authenticated? {request.user.is_authenticated}")
 
         # Log out the user by flushing the session
         logout(request)
@@ -359,39 +319,39 @@ class LogoutViewSet(ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# class Update(ViewSet):
-# authentication_classes = [SessionAuthentication]
-# permission_classes = [IsAuthenticated]
+class Update(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
 
-# @extend_schema(
-#     responses={200: UpdateUserImageSerializer},
-#     tags=["accounts"],
-#     description="Update user profile image with cropping data.",
-# )
-# @action(detail=False, methods=["post"])
-# def user_image(self, request):
-#     print("Content-Type:", request.content_type)
-#     print("Received data:", request.data)
-#     print("Files:", request.FILES)
+    @extend_schema(
+        responses={200: UpdateUserImageSerializer},
+        tags=["accounts"],
+        description="Update user profile image with cropping data.",
+    )
+    @action(detail=False, methods=["post"])
+    def user_image(self, request):
+        print("Content-Type:", request.content_type)
+        print("Received data:", request.data)
+        print("Files:", request.FILES)
 
-#     # ✅ Let DRF handle merging
-#     serializer = UpdateUserImageSerializer(data=request.data)
+        # ✅ Let DRF handle merging
+        serializer = UpdateUserImageSerializer(data=request.data)
 
-#     if not serializer.is_valid():
-#         print("Validation errors:", serializer.errors)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#     try:
-#         ImageFileService.update_image(request.user, serializer.validated_data)
-#         return Response(
-#             {
-#                 "success": "OK",
-#                 "image": request.build_absolute_uri(request.user.image.url),
-#             },
-#             status=status.HTTP_200_OK,
-#         )
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            ImageFileService.update_image(request.user, serializer.validated_data)
+            return Response(
+                {
+                    "success": "OK",
+                    "image": request.build_absolute_uri(request.user.image.url),
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateViewSet(ViewSet):

@@ -1,16 +1,15 @@
 // stores/utils/observer.js
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 
 export function useObserver(callback, options = {}) {
     const target = ref(null)
     let observer = null
-    console.log('observer options:', options)
 
     const defaultOptions = {
         root: null,
         rootMargin: '0px',
         threshold: 0.6,
-        ...options
+        ...options,
     }
 
     const start = () => {
@@ -30,7 +29,15 @@ export function useObserver(callback, options = {}) {
         observer = null
     }
 
-    onMounted(start)
+    onMounted(() => {
+        if (target.value) start()
+    })
+
+    // ✅ React to late-binding `ref`
+    watch(target, (el) => {
+        if (el) start()
+    })
+
     onUnmounted(stop)
 
     return {

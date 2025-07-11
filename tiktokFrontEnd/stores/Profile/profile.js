@@ -59,12 +59,6 @@ export const useProfileStore = defineStore('profile', () => {
   const image = ref('')
   const posts = ref([]) // hold initial batch of profile posts
 
-  // ✅ Compute total likes from posts
-  const allLikes = computed(() =>
-    posts.value.reduce((sum, post) =>
-      sum + (Array.isArray(post.likes) ? post.likes.length : 0), 0)
-  )
-
   async function getProfile(userId) {
     try {
       const res = await $axios.get(`/api/profile/${userId}/`)
@@ -77,7 +71,7 @@ export const useProfileStore = defineStore('profile', () => {
       username.value = user.username || ''
       bio.value = user.bio || ''
       image.value = user.image || ''
-      posts.value = userPosts || [] // load initial posts for display or like count
+      // posts.value = userPosts || [] // load initial posts for display or like count
 
     } catch (error) {
       console.error('❌ Failed to fetch profile:', error)
@@ -100,7 +94,7 @@ export const useProfileStore = defineStore('profile', () => {
     bio,
     image,
     posts,
-    allLikes, // 👈 included here
+    // allLikes, // 👈 included here
     getProfile,
     reset,
   }

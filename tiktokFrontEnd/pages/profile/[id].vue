@@ -1,9 +1,8 @@
-<!-- pages/profile/[id].vue -->
-<!-- <template>
-
+<template>
     <MainLayout>
         <div v-if="$profileStore.name"
             class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
+            <!-- Profile Header -->
             <div class="flex w-[calc(100vw-230px)]">
                 <NuxtImg class="max-w-[120px] rounded-full" :src="$profileStore.image" width="120" height="120"
                     alt="Profile Image" loading="lazy" />
@@ -11,126 +10,9 @@
                     <div class="text-[30px] font-bold truncate">
                         {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
                     </div>
-                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div>
-
-                    <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
-                        class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
-                        <Icon class="mt-0.5 mr-1" name="mdi:pencil" size="18" />
-                        <div>Edit profile</div>
-                    </button>
-
-                    <button v-else
-                        class="flex item-center rounded-md py-1.5 px-8 mt-3 text-[15px] text-white font-semibold bg-[#F02C56]">
-                        Follow
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center pt-4">
-                <div class="mr-4">
-                    <span class="font-bold">10K</span>
-                    <span class="text-gray-500 font-light text-[15px] pl-1.5">Following</span>
-                </div>
-                <div class="mr-4">
-                    <span class="font-bold">44K</span>
-                    <span class="text-gray-500 font-light text-[15px] pl-1.5">Followers</span>
-                </div>
-                <div class="mr-4">
-                    <span class="font-bold">{{ allLikes }}</span>
-                    <span class="text-gray-500 font-light text-[15px] pl-1.5">Likes</span>
-                </div>
-            </div>
-
-            <div class="pt-4 mr-4 text-gray-500 font-light text-[15px] pl-1.5 max-w-[500px]">
-                {{ $profileStore.bio }}
-            </div>
-
-            <div class="w-full flex items-center pt-4 border-b">
-                <div class="w-60 text-center py-2 text-[17px] font-semibold border-b-2 border-b-black">Videos</div>
-                <div class="w-60 text-gray-500 text-center py-2 text-[17px] font-semibold">
-                    <Icon name="material-symbols:lock-open" class="mb-0.5" /> Liked
-                </div>
-            </div>
-
-            <div class="mt-4 grid 2xl:grid-cols-6 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
-                <div v-if="show" v-for="post in $profileStore.posts">
-                    <PostUser :post="post" />
-                </div>
-            </div>
-        </div>
-    </MainLayout>
-
-</template> -->
-
-<!-- <script setup>
-import MainLayout from '~/layouts/MainLayout.vue';
-import { storeToRefs } from 'pinia';
-const { $userStore, $profileStore, $generalStore } = useNuxtApp()
-const { posts, allLikes } = storeToRefs($profileStore)
-
-
-const route = useRoute()
-let show = ref(false)
-
-
-definePageMeta({ middleware: 'auth' })
-
-onMounted(async () => {
-
-    try {
-        <!-- console.log('id is comming to profile or not --------> ', route.params.id);
-<!-- await $profileStore.getProfile(route.params.id)
-    } catch (error) {
-        console.log('is id not comming to profile or not ------ ', route.params.id); -->
-<!-- console.log(error) -->
-<!-- }
-
-    console.log('🧩 profile ID:', $profileStore.id)
-
-    console.log('return who things that profilestore returning:', {
-        id: $profileStore.id,
-        name: $profileStore.name,
-        username: $profileStore.username,
-        image: $profileStore.image,
-        bio: $profileStore.bio,
-        posts: $profileStore.posts,
-        allLikes: $profileStore.allLikes
-    });
-    console.log('🧩 user ID:', $userStore.id)
-
-    console.log('🧩 userStore profile:', {
-        id: $userStore.id,
-        name: $userStore.name,
-        username: $userStore.username,
-        image: $userStore.image,
-        bio: $userStore.bio,
-        posts: $userStore.posts,
-        allLikes: $userStore.allLikes
-    })
-
-})
-
-watch(() => posts.value, () => {
-    setTimeout(() => show.value = true, 300)
-})
-</script> -->
-
-
-
-
-<template>
-    <MainLayout>
-        <div v-if="$profileStore.name"
-            class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
-
-            <!-- Profile Header -->
-            <div class="flex w-[calc(100vw-230px)]">
-                <NuxtImg class="max-w-[120px] rounded-full" :src="$profileStore.image" width="120" height="120" />
-                <div class="ml-5 w-full">
-                    <div class="text-[30px] font-bold truncate">
-                        {{ $generalStore.allLowerCaseNoCaps($profileStore.name) }}
+                    <div class="text-[18px] truncate">
+                        {{ $profileStore.username }}
                     </div>
-                    <div class="text-[18px] truncate">{{ $profileStore.username }}</div>
 
                     <button v-if="$profileStore.id === $userStore.id" @click="$generalStore.isEditProfileOpen = true"
                         class="flex item-center rounded-md py-1.5 px-3.5 mt-3 text-[15px] font-semibold border hover:bg-gray-100">
@@ -156,7 +38,7 @@ watch(() => posts.value, () => {
                     <span class="text-gray-500 font-light text-[15px] pl-1.5">Followers</span>
                 </div>
                 <div class="mr-4">
-                    <span class="font-bold"> {{ $profileStore.allLikes }}</span>
+                    <span class="font-bold">{{ allLikes }}</span>
                     <span class="text-gray-500 font-light text-[15px] pl-1.5">Likes</span>
                 </div>
             </div>
@@ -168,58 +50,84 @@ watch(() => posts.value, () => {
 
             <!-- Tabs -->
             <div class="w-full flex items-center pt-4 border-b">
-                <div class="w-60 text-center py-2 text-[17px] font-semibold border-b-2 border-b-black">Videos</div>
+                <div class="w-60 text-center py-2 text-[17px] font-semibold border-b-2 border-b-black">
+                    Videos
+                </div>
                 <div class="w-60 text-gray-500 text-center py-2 text-[17px] font-semibold">
                     <Icon name="material-symbols:lock-open" class="mb-0.5" /> Liked
                 </div>
             </div>
 
             <!-- Posts Grid -->
-            <div class="mt-4 grid 2xl:grid-cols-6 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
-                <div v-for="post in posts" :key="post.id">
-                    <PostUser :post="post" />
-                </div>
+            <div v-if="posts.length > 0"
+                class="mt-4 grid 2xl:grid-cols-6 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
+                <PostUser v-for="post in posts" :key="post.id" :post="post" />
+            </div>
+            <div v-else class="text-gray-500 text-center mt-5 px-5">No posts found</div>
+
+            <!-- 🔥 Add this to trigger IntersectionObserver -->
+            <div ref="target" class="h-6 w-full"></div>
+
+            <div v-if="loading" class="text-center text-sm text-gray-400 mt-4">
+                Loading more posts...
             </div>
 
-            <!-- Infinite Scroll Target -->
-            <div ref="target" class="h-8"></div>
+
 
         </div>
     </MainLayout>
 </template>
 
 <script setup>
-import MainLayout from '~/layouts/MainLayout.vue';
-import { storeToRefs } from 'pinia';
-import { useProfileStore } from '~/stores/Profile/profile';
-import { useProfilePostsStore } from '~/stores/Profile/profilePosts';
-import { useObserver } from '~/stores/utils/observer';
+import MainLayout from '~/layouts/MainLayout.vue'
+import { storeToRefs } from 'pinia'
+import { useProfileStore } from '~/stores/Profile/profile'
+import { useProfilePostsStore } from '~/stores/Profile/profilePosts'
+import { useObserver } from '~/stores/utils/observer'
 
 const { $userStore, $generalStore } = useNuxtApp()
 const profileStore = useProfileStore()
 const postStore = useProfilePostsStore()
-const { posts, allLikes, fetchItems, hasMore, loading } = storeToRefs(postStore)
+
+const {
+    items: posts,
+    allLikes,
+    // fetchItems,
+    hasMore,
+    loading,
+} = storeToRefs(postStore)
+
+const { fetchItems } = postStore
 
 const route = useRoute()
-
 definePageMeta({ middleware: 'auth' })
 
-console.log('this is profile page');
-console.log('posts, ', posts);
-console.log('likes', profileStore.allLikes);
-console.log('fetchitems', fetchItems);
-console.log('hasMore', hasMore);
-console.log('loading', loading);
-
+// Debug logs
+console.log('📄 This is profile page')
+console.log('🧾 Posts:', posts)
+console.log('❤️ Likes:', allLikes)
+console.log('🔁 hasMore:', hasMore)
+console.log('⏳ loading:', loading)
+// console.log('📥 fetchItems:', fetchItems)
 
 onMounted(async () => {
     await profileStore.getProfile(route.params.id)
     await postStore.loadProfilePosts(route.params.id)
+
+    console.log('✅ Finished onMounted. hasMore:', hasMore.value)
 })
 
+// Infinite scroll logic
 const loadMore = () => {
-    if (!loading.value && hasMore.value) fetchItems.value()
+    console.log('👀 Observer triggered')
+    if (!loading.value && hasMore.value) {
+        console.log('📥 Fetching more...')
+        fetchItems() // <-- call directly, no `.value`
+    } else {
+        console.log('🚫 Not fetching (loading or no more)')
+    }
 }
 
-const { target } = useObserver(loadMore, { threshold: 0.7 })
+
+const { target } = useObserver(loadMore, { threshold: 0.6 })
 </script>
