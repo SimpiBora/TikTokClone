@@ -15,7 +15,7 @@ export const useProfilePostsStore = defineStore('profilePosts', () => {
         fetchFn: async (cursor) => {
             try {
                 const res = await $axios.get(`/api/profile/${userId}/posts/`, {
-                    params: { cursor, page_size: 3 }
+                    params: { cursor, page_size: 10 }
                 })
 
                 console.log(`📦 Profile posts API response for user ${userId} with cursor ${cursor}:`, res.data)
