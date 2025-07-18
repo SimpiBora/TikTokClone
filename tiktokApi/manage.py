@@ -27,11 +27,15 @@
 
 import os
 import sys
+from tiktopApi.settings import base as settings_base
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    if settings_base.DEBUG:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tiktopApi.settings.dev")
+    else:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tiktopApi.settings.prod")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

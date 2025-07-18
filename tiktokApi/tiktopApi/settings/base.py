@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-3)-&mdz2h8^o=n&w)2zrb#ik)9-p8)v68@&oyc0ha$%2n5aix!"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -69,6 +69,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "tiktopApi.urls"
+# ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -87,6 +88,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "tiktopApi.wsgi.application"
+# WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
