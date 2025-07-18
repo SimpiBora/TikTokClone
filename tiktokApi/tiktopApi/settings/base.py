@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-3)-&mdz2h8^o=n&w)2zrb#ik)9-p8)v68@&oyc0ha$%2n5aix!"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS = ["*"]
 
@@ -32,6 +32,9 @@ DEBUG = False
 # Application definition
 
 INSTALLED_APPS = [
+    # channels
+    "channels",
+    # django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -48,6 +51,7 @@ INSTALLED_APPS = [
     "search",
     #  do i need to use this as a separate app? or not think it later.
     "common.pagination",
+    "notifications",
     # third party apps
     "drf_spectacular",
     # external apps
@@ -87,8 +91,11 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "tiktopApi.wsgi.application"
+# WSGI_APPLICATION = "tiktopApi.wsgi.application"
 # WSGI_APPLICATION = "config.wsgi.application"
+
+# ASGI_APPLICATION = 'config.asgi.application'
+ASGI_APPLICATION = "tiktopApi.asgi.application"
 
 
 # Database
@@ -260,3 +267,34 @@ CACHES = {
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+
+
+# tiktopApi/
+#     tiktopApi/
+#         settings/
+#             __init__.py
+#             base.py
+#             production.py
+#             development.py
+#         urls.py
+#         wsgi.py
+#         asgi.py
+# # Step 3: Configure ASGI Application
+#     postsapi/
+#         __init__.py
+#         views.py
+#     likes/
+#         __init__.py
+#         views.py
